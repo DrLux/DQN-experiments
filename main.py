@@ -8,7 +8,7 @@ def init():
   cfg = configuration.CfgMaker()
   logger = utils.setup_logger(cfg.cfg_logger())
   
-  
+#test  
 
 def main():
   init()
