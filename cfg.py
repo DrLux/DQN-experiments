@@ -29,4 +29,13 @@ class CfgMaker():
     }
     return cfg_dumper
 
-  
+  def cfg_env(self):
+    cfg_env = {
+      'symbolic'            : True, #if true use symbolic data. If not, use frame
+      'env_name'            : 'Pendulum-v0',
+      'seed'                : 0,
+      'max_episode_length ' : 1000,
+      'action_repeat'       : 1,
+      'bit_depth'           : 5
+    }
+    return cfg_env
