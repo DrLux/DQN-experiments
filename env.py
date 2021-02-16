@@ -5,6 +5,24 @@ import gym
 
 GYM_ENVS = ['Pendulum-v0', 'MountainCarContinuous-v0', 'Ant-v2', 'HalfCheetah-v2', 'Hopper-v2', 'Humanoid-v2', 'HumanoidStandup-v2', 'InvertedDoublePendulum-v2', 'InvertedPendulum-v2', 'Reacher-v2', 'Swimmer-v2', 'Walker2d-v2']
 
+# controllare che i seed siano tutti fissati
+
+# Preprocesses an observation inplace (from float32 Tensor [0, 255] to [-0.5, 0.5])
+def preprocess_observation_(observation, bit_depth):
+    observation.div_(2 ** (8 - bit_depth)).floor_().div_(2 ** bit_depth).sub_(0.5)  # Quantise to given bit depth and centre
+    observation.add_(torch.rand_like(observation).div_(2 ** bit_depth))  # Dequantise (to approx. match likelihood of PDF of continuous images vs. PMF of discrete images)
+
+# Postprocess an observation for storage (from float32 numpy array [-0.5, 0.5] to uint8 numpy array [0, 255])
+def postprocess_observation(observation, bit_depth):
+    return np.clip(np.floor((observation + 0.5) * 2 ** bit_depth) * 2 ** (8 - bit_depth), 0, 2 ** 8 - 1).astype(np.uint8)
+
+def _images_to_observation(images, bit_depth):
+    #images = TF.to_tensor(np.asarray(images.copy()))
+    images = torch.tensor(images.copy().transpose(2, 0, 1), dtype=torch.float32)  #put channel first and technical fix with .copy()
+    preprocess_observation_(images, bit_depth)  # Quantise, centre and dequantise inplace
+    return images.unsqueeze(dim=0)  # Add batch dimension
+
+
 class GymEnv():
   
   def __init__(self, env_cfg):
@@ -18,23 +36,26 @@ class GymEnv():
     self.bit_depth = env_cfg['bit_depth']
 
   def reset(self):
-    self.t = 0  # Reset internal timer
+    # Reset internal timer
+    self.t = 0  
     state = self._env.reset()
     if self.symbolic:
-      return torch.tensor(state, dtype=torch.float32).unsqueeze(dim=0)
-    else:
-      return _images_to_observation(self._env.render(mode='rgb_array'), self.bit_depth)
+      #return torch.tensor(state, dtype=torch.float32).unsqueeze(dim=0)
+      return np.expand_dims(np.array(state, dtype=np.float32), axis=0)
+    #else:
+    #  return _images_to_observation(self._env.render(mode='rgb_array'), self.bit_depth)
   
   def step(self, action):
-    action = action.detach().numpy()
+    #action = action.detach().numpy() deve arrivarmi già in numpy
     reward = 0
-    for k in range(self.action_repeat):
+    done = False
+    k = 0
+    while k < self.action_repeat and done==False:
+      k +=1 
       state, reward_k, done, _ = self._env.step(action)
       reward += reward_k
       self.t += 1  # Increment internal timer
       done = done or self.t == self.max_episode_length
-      if done:
-        break
     if self.symbolic:
       observation = torch.tensor(state, dtype=torch.float32).unsqueeze(dim=0)
     else:
@@ -56,20 +77,13 @@ class GymEnv():
     return self._env.action_space.shape[0]
 
   @property
-  def action_range(self):
-    return float(self._env.action_space.low[0]), float(self._env.action_space.high[0])
+  def action_space(self):
+    return self._env.action_space.n 
+    #return float(self._env.action_space.low[0]), float(self._env.action_space.high[0])
 
   # Sample an action randomly from a uniform distribution over all valid actions
   def sample_random_action(self):
-    return torch.from_numpy(self._env.action_space.sample())
-
-
-def Env(env, symbolic, seed, max_episode_length, action_repeat, bit_depth):
-  if env in GYM_ENVS:
-    return GymEnv(env, symbolic, seed, max_episode_length, action_repeat, bit_depth)
-  elif env in CONTROL_SUITE_ENVS:
-    return ControlSuiteEnv(env, symbolic, seed, max_episode_length, action_repeat, bit_depth)
-
+    return self._env.action_space.sample()
 
 # Wrapper for batching environments together
 class EnvBatcher():

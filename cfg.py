@@ -2,6 +2,7 @@ import utils
 import datetime
 import logging
 
+# Dumpare cfg e seed correnti nella cartella con i risultati
 
 class CfgMaker():
 
@@ -32,10 +33,25 @@ class CfgMaker():
   def cfg_env(self):
     cfg_env = {
       'symbolic'            : True, #if true use symbolic data. If not, use frame
-      'env_name'            : 'Pendulum-v0',
+      'env_name'            : 'MountainCar-v0',
       'seed'                : 0,
-      'max_episode_length ' : 1000,
+      'max_episode_length' : 1000,
       'action_repeat'       : 1,
-      'bit_depth'           : 5
+      'bit_depth'           : 5,
+      'stack_frames'        : 4,
+      'envBatch'            : False,
+      'n_env'               : 3
     }
     return cfg_env
+
+  def cfg_agent(self):
+    cfg_agent = {
+      'ciao': 1
+    }
+    return cfg_agent
+
+  def cfg_exp(self):
+    cfg_exp = {
+      'ciao': 1
+    }
+    return cfg_exp
