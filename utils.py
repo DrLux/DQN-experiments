@@ -1,33 +1,10 @@
-import logging
-import os
-import time 
-
-'''
-How to use logger: 
-    logger.info("")
-    logger.error("")
-    logger.warning("")
-'''
-
-def setup_logger(config):
-    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-    logger = logging.getLogger('logger')
-    log_handler = logging.FileHandler(os.path.join(config['log_dir'], config['log_file']))
-    log_handler.setFormatter(formatter)
-    logger.handlers = []
-    logger.addHandler(log_handler)
-    logger.setLevel(logging.getLevelName(config['log_level']))
-
-    #logger.info('Created logger')
-    #logger.error('Logging error')
-
-    return logger
+from pathlib import Path
+import tracemalloc
 
 def make_dir(dirpath):
-  path = os.path.join(os.getcwd(), dirpath)
-  if not os.path.isdir(path):
-    os.mkdir(path)
+  Path(dirpath).mkdir(parents=True,exist_ok=True)
 
+  
 class Chronometer():
   def __init__(self):
     self.result = dict()  
@@ -43,4 +20,15 @@ class Chronometer():
       print('Elapsed time for {} = {:1.5f}'.format(k,v))
 
   
+class Profiler():
+  def __init__(self):
+    self.result = dict()  
 
+  def trace(self,cname):
+    memory_used, _ = tracemalloc.get_traced_memory()
+    memory_used = memory_used / 10 ** 6
+    self.result[cname] = memory_used  
+
+  def show_result(self):
+    for k,v in self.result.items():
+      print('Memory used for {} = {:1.5f} MB'.format(k,v))

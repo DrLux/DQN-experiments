@@ -1,19 +1,15 @@
-import cfg as configuration
+from cfg import CfgMaker
+from log import Logger
 import utils 
 
 
-
-
 def init():
-  cfg = configuration.CfgMaker()
-  logger = utils.setup_logger(cfg.cfg_logger())
-  
-  
-
-def main():
-  init()
-  test_pool()
-
+  cfg = CfgMaker()
+  return cfg
 
 if __name__ == "__main__":
-    main()
+  try:
+    cfg = init()
+    logger = Logger(cfg.make_cfg_logger())
+  except KeyboardInterrupt:
+    logger.handle_kb_int()

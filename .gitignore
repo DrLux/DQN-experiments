@@ -6,6 +6,15 @@ __pycache__/
 # C extensions
 *.so
 
+experiments/
+*.txt
+*.json
+*.pkl
+*.ckp
+*.jpg
+*.png
+
+
 # Distribution / packaging
 homework_fall2020-master/
 .Python
