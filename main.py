@@ -11,9 +11,25 @@ if __name__ == "__main__":
         cfg = CfgMaker()
         logger = Logger(cfg.make_cfg_logger())
         env = Env(cfg.make_cfg_env(),logger)
-        agent = Agent(cfg.make_cfg_agent(),logger)
-        experiment = Experiment(cfg.make_cfg_experiment(),env,logger)
+        
+        # Extract env info to update the agent config 
+        update_cfg_agent = {
+            'action_range' : env.get_action_range(),
+            'action_dtype' : env.get_action_dtype(),
+            'num_actions'  : env.get_num_acts(),
+        }
 
+        agent_cfg = cfg.make_cfg_agent()
+        agent_cfg = cfg.update_cfg(agent_cfg,update_cfg_agent)
+
+        
+        agent = Agent(agent_cfg,logger)
+
+        dumper = None 
+        experiment = Experiment(cfg.make_cfg_experiment(),env,agent,dumper,logger)
+
+        cfg.show_configs()
+        
         experiment.start()
 
     except KeyboardInterrupt:

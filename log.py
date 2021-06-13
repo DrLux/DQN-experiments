@@ -46,8 +46,8 @@ class Logger():
             self.dbg_log(text)
 
         if params:
-            self.info_logger.info(f' {text} \n Dump: {params}')
-            print(f' {text} \n Dump: {params}')
+            self.info_logger.info(f' {text} \n Params: {params}')
+            print(f' {text} \n Params: {params}')
         else:
             print(text)
             self.info_logger.info(text)
