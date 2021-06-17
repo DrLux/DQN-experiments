@@ -1,7 +1,7 @@
 from cfg import CfgMaker
 from env import Env 
 from log import Logger
-from agent import Agent
+from DQNAgent import DqnAgent
 from experiment import Experiment
 import utils 
 
@@ -23,7 +23,7 @@ if __name__ == "__main__":
         agent_cfg = cfg.update_cfg(agent_cfg,update_cfg_agent)
 
         
-        agent = Agent(agent_cfg,logger)
+        agent = DqnAgent(agent_cfg,logger)
 
         dumper = None 
         experiment = Experiment(cfg.make_cfg_experiment(),env,agent,dumper,logger)
