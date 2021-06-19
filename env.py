@@ -1,13 +1,41 @@
 import gym
 
-#class State():
-    
+# QUI MANCA TUTTA LA PARTE SUI SEED 
+
+class State():
+    def __init__(self,env, logger):
+        self.env            =   env
+        self.logger         =   logger
+        self.obs_space     =   self.env.observation_space
+        self.logger.info_log(f" Init State. Dump State_space {self.obs_space}")
+
+    def get_state_range(self):
+        return (self.obs_space.low,self.obs_space.high)
+
+    def get_state_dtype(self):
+        return self.obs_space.dtype
+
+    def get_obs_shape(self):
+        return self.obs_space.shape
+
+    def show_state_env_info(self):
+        self.logger.info_log("\n\t ################# ")
+        self.logger.info_log("\t# Dump State Info Environment: ")
+        self.logger.info_log(f"\t# State_space: {self.obs_space}")
+        self.logger.info_log(f"\t# State Shape: {self.obs_space.shape}")
+        self.logger.info_log(f"\t# State dtype: {self.obs_space.dtype}")
+        self.logger.info_log(f"\t# State Range Low: {self.obs_space.low}, High: {self.obs_space.high}")
+        self.logger.info_log("\t ################# \n")
+
+
+
+
 class Action():
     def __init__(self,env, logger):
         self.env            =   env
         self.logger         =   logger
         self.action_space   =   self.env.action_space.__class__.__name__
-        self.logger.info_log(" Init action. Dump Action_space ", self.action_space)
+        self.logger.info_log(f" Init action. Dump Action_space {self.env.action_space}", )
 
         self.init_action_range()
         self.init_dtype()
@@ -59,12 +87,14 @@ class Action():
 
     def show_action_env_info(self):
         self.logger.info_log("\n\t ################# ")
-        self.logger.info_log("\t# Dump Info Environment: ")
+        self.logger.info_log("\t# Dump Action Info Environment: ")
         self.logger.info_log(f"\t# Action_space: {self.action_space}")
         self.logger.info_log(f"\t# Num Actions: {self.n_acts}")
         self.logger.info_log(f"\t# Action dtype: {self.dtype}")
         self.logger.info_log(f"\t# Action Range Low: {self.range_low}, High: {self.range_high}")
         self.logger.info_log("\t ################# \n")
+
+
 
 
 
@@ -75,6 +105,7 @@ class Env():
         self.logger = logger
         self.render = cfg_env['render']
         self.action = Action(self.env, self.logger)
+        self.state = State(self.env, self.logger)
         self.show_info_env()
 
         
@@ -107,11 +138,18 @@ class Env():
         return self.action.get_num_acts()
 
     def show_info_env(self):
+        self.logger.info_log("\t# Dump Info Environment: ")
         self.action.show_action_env_info()
+        self.state.show_state_env_info()
 
+    def get_obs_shape(self):
+        return self.state.get_obs_shape()
+
+    def get_state_range(self):
+        return self.state.get_state_range()
+
+    def get_state_dtype(self):
+        return self.state.get_state_dtype()
 
     def close(self):
         self.env.close()
-    
-
-    

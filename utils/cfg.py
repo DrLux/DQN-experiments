@@ -1,4 +1,4 @@
-import utils
+from utils.utils import make_dir
 import datetime
 import logging
 import pickle
@@ -18,19 +18,32 @@ class CfgMaker():
             self.experiment_folder = 'experiments/results/'+str(datetime.datetime.now().strftime('%d-%b-%y %H:%M:%S'))
 
         #  create folders
-        utils.make_dir(self.experiment_folder)
+        make_dir(self.experiment_folder)
         
         self.conf_dir = Path(self.experiment_folder) / Path("config") 
-        utils.make_dir(self.conf_dir)
+        make_dir(self.conf_dir)
         self.conf_dir = self.conf_dir / 'config.pkl'
         if self.conf_dir.exists():
             self.conf_dir.unlink()
         self.all_configs = dict()
 
 
+    def make_dqn_net_config(self):
+        self.dqn_net_cfg = {
+            'name'      : "dqn_net_cfg",
+            'fc1Dims'      : 1024,
+            'fc2Dims'      : 512,
+            'lr'           : 0.4,
+        }
+        self.all_configs['dqn_net_cfg'] = self.dqn_net_cfg
+        self.dump_cfg(self.all_configs)
+        
+        return self.dqn_net_cfg
+
+
     def make_cfg_logger(self):
         log_dir = Path(self.experiment_folder) / Path("logdir")
-        utils.make_dir(log_dir)
+        make_dir(log_dir)
         self.cfg_logger = {
             'name'      : "cfg_logger",
             'log_dir'   : str(log_dir),
@@ -45,6 +58,8 @@ class CfgMaker():
         return self.cfg_logger
     
     def make_cfg_agent(self):
+        policy_type = "DQN"
+
         self.cfg_agent = {
             'name'      : "cfg_agent",
         }
@@ -86,7 +101,7 @@ class CfgMaker():
 
     def make_cfg_dumper(self):
         dump_dir = Path(self.experiment_folder) / Path("data")
-        utils.make_dir(dump_dir)
+        make_dir(dump_dir)
         self.cfg_dumper = {
             'name'      : "cfg_dumper",
             'dump_dir': str(dump_dir),
