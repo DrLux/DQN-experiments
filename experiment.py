@@ -1,3 +1,4 @@
+
 class Experiment():
 
     def __init__(self,cfg,env,agent,dumper,logger):
@@ -18,5 +19,33 @@ class Experiment():
             new_state,rew,done = self.env.step(action)
             self.max_allowed_steps -= 1
 
-        print("Finito")
         self.env.close()
+
+
+    def train(self):
+        highScore = -100000
+        episode = 0
+        while True:
+            done = False
+            state = self.env.reset()
+
+            score, frame = 0, 1
+            while not done:
+                self.env.render()
+
+                action = self.agent.chooseAction(state)
+                state_, reward, done = self.env.step(action)
+                
+                self.agent.learn(state, action, reward, state_, done)
+                state = state_
+
+                score += reward
+                frame += 1
+
+            highScore = max(highScore, score)
+
+            print(( "ep {}: high-score {:12.3f}, "
+                    "score {:12.3f}, last-episode-time {:4d}").format(
+                episode, highScore, score,frame))
+
+            episode += 1

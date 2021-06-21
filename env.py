@@ -88,6 +88,7 @@ class Action():
     def show_action_env_info(self):
         self.logger.info_log("\n\t ################# ")
         self.logger.info_log("\t# Dump Action Info Environment: ")
+        self.logger.info_log(f"\t# Random Action: {self.sample_random_action()}")
         self.logger.info_log(f"\t# Action_space: {self.action_space}")
         self.logger.info_log(f"\t# Num Actions: {self.n_acts}")
         self.logger.info_log(f"\t# Action dtype: {self.dtype}")
@@ -103,12 +104,14 @@ class Env():
     def __init__(self,cfg_env, logger):
         self.env = gym.make(cfg_env['env_name'])
         self.logger = logger
-        self.render = cfg_env['render']
+        self.render_flag = cfg_env['render']
         self.action = Action(self.env, self.logger)
         self.state = State(self.env, self.logger)
         self.show_info_env()
 
-        
+    def render(self):
+        if self.render_flag:
+            self.env.render()
 
     def reset(self):
         self.logger.info_log("Resetting Environment")
@@ -125,7 +128,7 @@ class Env():
         return new_state,rew,done
 
     def handle_kb_int(self):
-        self.info_log("Interrupting env")
+        self.logger.info_log("Interrupting env")
         self.close()
 
     def get_action_range(self):

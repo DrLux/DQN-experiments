@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
         cfg.show_configs()
         
-        experiment.start()
+        experiment.train()
 
     except KeyboardInterrupt:
         logger.handle_kb_int()

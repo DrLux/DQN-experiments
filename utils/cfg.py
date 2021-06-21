@@ -4,13 +4,15 @@ import logging
 import pickle
 from pathlib import Path
 import json
-
+import torch
 
 class CfgMaker():
 
     def __init__(self):
         # Create initial folders
         self.DEV_LEVEL = "DEVELOPMENT"
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
         if self.DEV_LEVEL == "DEVELOPMENT":
             self.experiment_folder = 'experiments/results/dev'
@@ -33,7 +35,9 @@ class CfgMaker():
             'name'      : "dqn_net_cfg",
             'fc1Dims'      : 1024,
             'fc2Dims'      : 512,
-            'lr'           : 0.4,
+            'lr'           : 0.0001,
+            'keys'         : ['action_range','action_dtype','num_actions','obs_shape','obs_range','obs_dtype'],
+            'device'       : self.device
         }
         self.all_configs['dqn_net_cfg'] = self.dqn_net_cfg
         self.dump_cfg(self.all_configs)
@@ -45,9 +49,9 @@ class CfgMaker():
         log_dir = Path(self.experiment_folder) / Path("logdir")
         make_dir(log_dir)
         self.cfg_logger = {
-            'name'      : "cfg_logger",
-            'log_dir'   : str(log_dir),
-            'info_log_file'  : 'infolog.txt',
+            'name'          : "cfg_logger",
+            'log_dir'       : str(log_dir),
+            'info_log_file' : 'infolog.txt',
             'dbg_log_file'  : 'dbglog.txt',
             'DEV_LEVEL'     : self.DEV_LEVEL,
             }
@@ -60,8 +64,22 @@ class CfgMaker():
     def make_cfg_agent(self):
         policy_type = "DQN"
 
+        replay_cfg = {
+            'name'              : 'replay_cfg',
+            'replay_dim'        : 1000000,
+            'replay_keys'       : ['obs_shape', 'obs_dtype', 'action_dtype']
+        }
+
+        traing_cfg = {
+            'name'              : 'traing_cfg',
+            'replay_cfg'        : replay_cfg,
+            'batch_size'        : 64,
+            'min_replay_dim'    : 2048,
+        }
+
         self.cfg_agent = {
             'name'      : "cfg_agent",
+            'train_cfg' : traing_cfg,
         }
 
         self.all_configs['cfg_agent'] = self.cfg_agent
@@ -90,7 +108,7 @@ class CfgMaker():
     def make_cfg_env(self):
         self.cfg_env = {
             'name'      :   'cfg_env',
-            'env_name'  :   'Acrobot-v1',#'CartPole-v0',#'MountainCarContinuous-v0',
+            'env_name'  :   'CartPole-v0',#'MountainCarContinuous-v0',
             'render'    :   True,
         }
         self.all_configs['cfg_env'] = self.cfg_env
