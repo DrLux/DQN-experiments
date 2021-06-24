@@ -3,12 +3,18 @@ from DQN.network import Network
 import torch
 from DQN.replay_buffer import vect_ReplayBuffer
 from utils.utils import print_dict
+from DQN.exploration import Exploration_strategy
 
 class DQN_Train_Agent(TrainAgent):
-    def __init__(self,agent_cfg,logger):
+    def __init__(self,agent_cfg,logger):      
+
         self.state_name = "training"
         self.agent_cfg = agent_cfg
+        self.action_range = agent_cfg['action_range']
+        self.num_actions = agent_cfg['num_actions']
         self.train_cfg = self.agent_cfg['train_cfg']
+        self.action_dtype = self.agent_cfg['action_dtype']
+
         
         self.net_cfg = agent_cfg['net_config']
         self.dqn = Network(self.net_cfg)
@@ -18,6 +24,10 @@ class DQN_Train_Agent(TrainAgent):
 
         self.batch_size = self.train_cfg['batch_size']
         self.min_replay_dim = self.train_cfg['min_replay_dim']
+
+        exploration_cfg = self.train_cfg['exploration_cfg']
+        self.exploration = Exploration_strategy(exploration_cfg,logger)
+
         
     
     
@@ -29,18 +39,18 @@ class DQN_Train_Agent(TrainAgent):
 
 
     def sample_random_action(self):
-        return super(DQN_Train_Agent, self).sample_random_action()
+        action = super(DQN_Train_Agent, self).sample_random_action()
+        action = action[0]
+        return action 
     
     def chooseAction(self,obs):
-        qValues = self.dqn(obs) # pass it through the network to get your estimations
-        action = torch.argmax(qValues) # pick the highest
-        action =  action.item() # return an int instead of a tensor containing the index of the best action
+        if self.exploration.get_eploration_flag():
+            action = self.sample_random_action()
+        else:
+            qValues = self.dqn(obs) # pass it through the network to get your estimations
+            action = torch.argmax(qValues) # pick the highest
+            action =  action.item() # return an int instead of a tensor containing the index of the best action
         
-        import random
-        # 10% of the time the agent picks an action at random, and ignores its own q values
-        chanceOfAsparagus = random.randint(1, 10)
-        if chanceOfAsparagus == 1:  #   10% chance
-            action = random.randint(0, 1)
 
         return action  
 
@@ -66,6 +76,7 @@ class DQN_Train_Agent(TrainAgent):
 
         loss.backward()
         self.dqn.optimizer.step()
+        self.exploration.decay_exp()
 
 
 

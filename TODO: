@@ -1,0 +1,8 @@
+TODO:
+
+1 aggiungere il decoratore: debug che prenda il timer e la ram occupata
+2 aggiugnere nel buffer exp il dump e il load
+3 aggiugnere nell' expl la possiblità di vedere la curva di eps
+4 creare il dumper che dumpi e crei il tb
+5 alla fine spostare tutto su un repo a parte pubblica
+6 aggiungere tutte le print nel logger

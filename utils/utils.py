@@ -38,7 +38,7 @@ class Profiler():
 def print_dict(d, text=""):
     temp_dict = dict()
     for k,v in d.items():
-        if isinstance(obj, dict):
+        if isinstance(d, dict):
             temp_dict[k] = json.dumps(str(v),indent=4)
         else:
             temp_dict[k] = str(v) 

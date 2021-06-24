@@ -29,6 +29,18 @@ class CfgMaker():
             self.conf_dir.unlink()
         self.all_configs = dict()
 
+    def make_exploration_config(self):
+        self.exploration_cfg = {
+            'name'              : "exploration_cfg",    
+            'epsilon'           : 0.1,            
+            'epsilon_decay'     : 0.00005,  
+            'epsilon_min'       : 0.001,
+            'strategy'          : "strategy"         
+        }
+        self.all_configs['exploration_cfg'] = self.exploration_cfg
+        self.dump_cfg(self.all_configs)
+        return self.exploration_cfg
+
 
     def make_dqn_net_config(self):
         self.dqn_net_cfg = {
@@ -83,6 +95,8 @@ class CfgMaker():
         }
 
         self.all_configs['cfg_agent'] = self.cfg_agent
+        self.all_configs['replay_cfg'] = replay_cfg
+        self.all_configs['traing_cfg'] = traing_cfg
         self.dump_cfg(self.cfg_agent)
 
         return self.cfg_agent
@@ -90,7 +104,14 @@ class CfgMaker():
     def update_cfg(self,old_dict,upd_dict):
         self.all_configs[old_dict['name']].update(upd_dict)
         self.dump_cfg(self.all_configs)
-        return self.cfg_agent
+        return old_dict
+
+    def add_key(self,old_dict, k,v):
+        self.all_configs[old_dict['name']][k] = v
+        self.dump_cfg(self.all_configs)
+        return old_dict
+
+
 
 
 
@@ -98,10 +119,11 @@ class CfgMaker():
         self.cfg_experiment = {
             'name'              : "cfg_experiment",
             'max_allowed_steps' : 50,
+            'num_episodes'      : 100,
         }
 
         self.all_configs['cfg_experiment'] = self.cfg_experiment
-        self.dump_cfg(self.cfg_agent)
+        self.dump_cfg(self.cfg_experiment)
 
         return self.cfg_experiment
 
@@ -109,7 +131,7 @@ class CfgMaker():
         self.cfg_env = {
             'name'      :   'cfg_env',
             'env_name'  :   'CartPole-v0',#'MountainCarContinuous-v0',
-            'render'    :   True,
+            'render'    :   False,
         }
         self.all_configs['cfg_env'] = self.cfg_env
         self.dump_cfg(self.cfg_env)

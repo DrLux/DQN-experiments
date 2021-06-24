@@ -122,7 +122,7 @@ class Env():
         return self.action.sample_random_action()
 
     def step(self, action):
-        if self.render:
+        if self.render_flag:
             self.env.render()
         new_state,rew,done,info = self.env.step(action)
         return new_state,rew,done

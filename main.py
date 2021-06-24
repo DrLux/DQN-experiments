@@ -27,6 +27,12 @@ if __name__ == "__main__":
         
         # get specific agent config
         net_config   =  cfg.make_dqn_net_config()
+        experiment_cfg = cfg.make_cfg_experiment()
+
+        # get exploration config
+        exploration_cfg = cfg.make_exploration_config()
+        cfg.add_key(exploration_cfg,'num_episode',experiment_cfg['num_episodes'])
+        
         
         update_cfg_agent = {
             'action_range'  : action_range,
@@ -42,12 +48,12 @@ if __name__ == "__main__":
 
         agent_cfg = cfg.make_cfg_agent()
         agent_cfg = cfg.update_cfg(agent_cfg,update_cfg_agent)
+        cfg.add_key(agent_cfg['train_cfg'],'exploration_cfg',exploration_cfg)
 
-        
         agent = DqnAgent(agent_cfg,logger)
 
         dumper = None 
-        experiment = Experiment(cfg.make_cfg_experiment(),env,agent,dumper,logger)
+        experiment = Experiment(experiment_cfg,env,agent,dumper,logger)
 
         cfg.show_configs()
         

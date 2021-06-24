@@ -31,7 +31,6 @@ class Experiment():
 
             score, frame = 0, 1
             while not done:
-                self.env.render()
 
                 action = self.agent.chooseAction(state)
                 state_, reward, done = self.env.step(action)
