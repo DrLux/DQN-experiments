@@ -14,6 +14,7 @@ class Network(torch.nn.Module):
         self.device         = cfg['device']
         self.create_model()
 
+
         #   pytorch stuff
         self.optimizer = optim.Adam(self.parameters(), lr=self.lr)
         self.loss = nn.MSELoss()

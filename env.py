@@ -75,7 +75,7 @@ class Action():
         if self.action_space == "Discrete":
             self.n_acts         =   len(self.env.action_space.shape)
             if self.n_acts == 0:
-                self.n_acts = 1
+                self.n_acts = self.env.action_space.n
         if self.action_space == "Continuous":
             raise NotImplementedError
         elif self.action_space == "Box":
