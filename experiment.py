@@ -6,46 +6,52 @@ class Experiment():
         self.logger = logger
         self.agent  = agent
         self.max_allowed_steps =  cfg['max_allowed_steps']
-        #self.dumper
-        #self.trainer
-        #self.validation
-        #self.test
-
-    def start(self):
-        state = self.env.reset()
-        done = False
-        while not done and self.max_allowed_steps > 0:
-            action = self.agent.sample_random_action()
-            new_state,rew,done = self.env.step(action)
-            self.max_allowed_steps -= 1
-
-        self.env.close()
-
-
+        self.num_episodes = cfg['num_episodes']
+        self.dumper = dumper
+        
+        
+   
     def train(self):
-        highScore = -100000
         episode = 0
-        numSamples = 0
-        while True:
+        episode_info = dict()
+        all_steps = 0
+        
+        #tqdm
+        for episode in range(self.num_episodes):
             done = False
             state = self.env.reset()
 
-            score, frame = 0, 1
+            cump_rew = 0
+            step_episode = 0
             while not done:
+                step_agent_info = None
+                step_experiment_info = dict()
 
                 action = self.agent.chooseAction(state)
-                new_state, reward, done = self.env.step(action)
+                new_state, reward, done = self.env.step(action)                
                 self.agent.learn(state, action, reward, new_state, done)
                 state = new_state
 
-                score += reward
-                frame += 1
-                numSamples += 1
+                cump_rew += reward
+                step_episode += 1
+                all_steps += 1
 
-            highScore = max(highScore, score)
+                step_experiment_info['step'] = all_steps
+                step_experiment_info['reward'] = reward
+                step_experiment_info['done'] = done
 
-            print(( "ep {:4d}: high-score {:12.3f}, "
-                "score {:12.3f}, epsilon {:5.3f}").format(
-            episode, highScore, score, self.agent.get_epsilon()))
 
-            episode += 1
+                step_agent_info = self.agent.get_info_dump()
+                self.dumper.plot_step_info(step_experiment_info,step_agent_info)
+
+            print(( "ep {:4d}: score {:12.3f}, epsilon {:5.3f}").format(episode, cump_rew, self.agent.get_epsilon()))
+            
+            episode_info['episode'] = episode
+            episode_info['cump_rew'] = cump_rew
+            episode_info['len'] = step_episode
+            episode_info['epsilon'] = self.agent.get_epsilon()
+
+            self.dumper.plot_episode_info(episode_info)
+        
+        self.env.close()
+        self.dumper.close()

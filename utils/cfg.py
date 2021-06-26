@@ -41,6 +41,18 @@ class CfgMaker():
         self.dump_cfg(self.all_configs)
         return self.exploration_cfg
 
+    def make_dumper_config(self):
+        dump_dir = Path(self.experiment_folder) / Path("dump")
+        make_dir(dump_dir)
+        self.dumper_cfg = {
+            'name'      : "dumper_cfg",
+            'dump_dir':  str(dump_dir),
+        }
+        self.all_configs['dumper_cfg'] = self.dumper_cfg
+        self.dump_cfg(self.all_configs)
+        
+        return self.dumper_cfg
+
 
     def make_dqn_net_config(self):
         self.dqn_net_cfg = {
@@ -120,7 +132,7 @@ class CfgMaker():
         self.cfg_experiment = {
             'name'              : "cfg_experiment",
             'max_allowed_steps' : 50,
-            'num_episodes'      : 100,
+            'num_episodes'      : 200,
         }
 
         self.all_configs['cfg_experiment'] = self.cfg_experiment
@@ -141,7 +153,7 @@ class CfgMaker():
 
 
     def make_cfg_dumper(self):
-        dump_dir = Path(self.experiment_folder) / Path("data")
+        dump_dir = Path(self.experiment_folder) / Path("dump")
         make_dir(dump_dir)
         self.cfg_dumper = {
             'name'      : "cfg_dumper",
@@ -149,7 +161,7 @@ class CfgMaker():
             'dump_file': 'dump.txt',
         }
         self.all_configs['cfg_dumper'] = self.cfg_dumper
-        self.dump_cfg(self.cfg_env)
+        self.dump_cfg(self.cfg_dumper)
         return self.cfg_dumper
 
     def dump_cfg(self, cfg):

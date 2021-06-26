@@ -28,8 +28,7 @@ class Logger():
         self.info_logger.addHandler(info_log_handler)
         self.info_logger.setLevel(logging.INFO) #debug, info, warning, error, critical
         self.info_log("Start info logger")
-
-        
+      
 
         
     

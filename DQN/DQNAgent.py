@@ -4,6 +4,7 @@ import torch
 from DQN.replay_buffer import vect_ReplayBuffer
 from utils.utils import print_dict
 from DQN.exploration import Exploration_strategy
+from collections import defaultdict
 
 class DQN_Train_Agent(TrainAgent):
     def __init__(self,agent_cfg,logger):      
@@ -15,7 +16,7 @@ class DQN_Train_Agent(TrainAgent):
         self.train_cfg = self.agent_cfg['train_cfg']
         self.action_dtype = self.agent_cfg['action_dtype']
         self.gamma = self.agent_cfg['gamma']
-
+        self.step_info_dump = defaultdict(list)
         
         self.net_cfg = agent_cfg['net_config']
         self.dqn = Network(self.net_cfg)
@@ -28,6 +29,11 @@ class DQN_Train_Agent(TrainAgent):
 
         exploration_cfg = self.train_cfg['exploration_cfg']
         self.exploration = Exploration_strategy(exploration_cfg,logger)
+
+    def get_info_dump(self):
+        temp_dict = self.step_info_dump 
+        self.step_info_dump = dict()
+        return temp_dict
 
 
     def __get_replay_cfg(self):        
@@ -42,55 +48,69 @@ class DQN_Train_Agent(TrainAgent):
         return action 
     
     def chooseAction(self,obs):
-        if self.exploration.get_eploration_flag():
-            action = self.sample_random_action()
-        else:
+        greedy = self.exploration.get_eploration_flag() 
+        if greedy:
             obs = torch.tensor(obs).float().detach()
             qValues = self.dqn(obs) # pass it through the network to get your estimations
             action = torch.argmax(qValues) # pick the highest
             action =  action.item() # return an int instead of a tensor containing the index of the best action
+            dump_qvalue = torch.max(qValues).item()
+        else:
+            action = self.sample_random_action()
+            dump_qvalue = None
+        
 
+        self.step_info_dump['greedy'] = greedy
+        self.step_info_dump['qvalue'] = dump_qvalue
         return action  
 
     def get_epsilon(self):
-        return self.exploration.epsilon
+        epsilon = self.exploration.epsilon
+        
+        return epsilon
 
 
     def learn(self,state, action, reward, next_state, done): 
         self.storeMemory(state, action, reward, next_state, done)
-        if self.memory.memCount < self.min_replay_dim:   
-            return
+        if self.memory.memCount < self.min_replay_dim:
+            loss = 0 
+            self.step_info_dump['epsilon'] = self.get_epsilon()
+        else:
         
-        states, actions, rewards, new_states, dones = self.memory.sample(self.batch_size)
+            states, actions, rewards, new_states, dones = self.memory.sample(self.batch_size)
 
-        states  = torch.tensor(states , dtype=torch.float32).to(self.dqn.device)
-        actions = torch.tensor(actions, dtype=torch.long   ).to(self.dqn.device)
-        rewards = torch.tensor(rewards, dtype=torch.float32).to(self.dqn.device)
-        next_state = torch.tensor(new_states, dtype=torch.float32).to(self.dqn.device)
-        dones   = torch.tensor(dones  , dtype=torch.bool   ).to(self.dqn.device)
+            states          = torch.tensor(states , dtype=torch.float32).to(self.dqn.device)
+            actions         = torch.tensor(actions, dtype=torch.long   ).to(self.dqn.device)
+            rewards         = torch.tensor(rewards, dtype=torch.float32).to(self.dqn.device)
+            next_state      = torch.tensor(new_states, dtype=torch.float32).to(self.dqn.device)
+            dones           = torch.tensor(dones  , dtype=torch.bool   ).to(self.dqn.device)
 
-        self.dqn.optimizer.zero_grad()  # resets all the tensor derivatives
+            self.dqn.optimizer.zero_grad()  # resets all the tensor derivatives
 
-        batchIndices = np.arange(self.batch_size, dtype=np.int64)  # i learned how to spell indices
-        qValue = self.dqn(states)[batchIndices, actions]
+            batchIndices = np.arange(self.batch_size, dtype=np.int64)  # i learned how to spell indices
+            qValue = self.dqn(states)[batchIndices, actions]
 
-        next_qValue = self.dqn(next_state)        #   values of all actions
-        next_qValue = torch.max(next_qValue, dim=1)[0] #   extract greedy action value
-        next_qValue[dones] = 0.0                    #   filter out post-terminal states
+            next_qValue = self.dqn(next_state)        #   values of all actions
+            next_qValue = torch.max(next_qValue, dim=1)[0] #   extract greedy action value
+            next_qValue[dones] = 0.0                    #   filter out post-terminal states
 
-        qTarget = reward + self.gamma * next_qValue
-        loss = self.dqn.loss(qTarget, qValue)
+            qTarget = reward + self.gamma * next_qValue
+            loss = self.dqn.loss(qTarget, qValue)
 
-        self.dqn.optimizer.zero_grad()
-        loss.backward()
-        self.dqn.optimizer.step()
+            self.dqn.optimizer.zero_grad()
+            loss.backward()
+            self.dqn.optimizer.step()
 
-        self.exploration.decay_exp()
+            self.exploration.decay_exp()
+
+        self.step_info_dump['loss'] = loss
+        self.step_info_dump['epsilon'] = self.get_epsilon()
 
     def storeMemory(self, state, action, reward, nextState, done):
         self.memory.storeMemory(state, action, reward, nextState, done)
 
 class DQN_Eval_Agent(EvalAgent):
+
     def __init__(self,eval_cfg,logger):
         self.net_cfg = eval_cfg['net_config']
         self.dqn = Network(self.net_cfg)
@@ -150,3 +170,6 @@ class DqnAgent(Agent):
             return self.train_agent.get_epsilon()        
         else:
             pass
+
+    def get_info_dump(self):
+        return self.agent_state.get_info_dump()
