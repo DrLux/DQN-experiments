@@ -73,9 +73,7 @@ class Action():
     
     def init_num_acts(self):
         if self.action_space == "Discrete":
-            self.n_acts         =   len(self.env.action_space.shape)
-            if self.n_acts == 0:
-                self.n_acts = self.env.action_space.n
+            self.n_acts = self.env.action_space.n
         if self.action_space == "Continuous":
             raise NotImplementedError
         elif self.action_space == "Box":
@@ -102,7 +100,7 @@ class Action():
 class Env():
 
     def __init__(self,cfg_env, logger):
-        self.env = gym.make(cfg_env['env_name'])
+        self.env = gym.make(cfg_env['env_name']).unwrapped
         self.logger = logger
         self.render_flag = cfg_env['render']
         self.action = Action(self.env, self.logger)

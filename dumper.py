@@ -55,14 +55,16 @@ class Dumper():
         self.plot_scalar("episode/length",episode_info['len'],episode_info['episode'])
         self.plot_scalar("episode/epsilon",episode_info['epsilon'],episode_info['episode'])
 
-        #for k,l in self.buffer.items():
-        #    self._make_bar_plot(k,l)
+
+    def plot_experiment_info(self):
+        for k,l in self.buffer.items():
+            self._make_bar_plot(k,l)
 
     def _make_bar_plot(self, title,list):
         from collections import Counter
         import numpy as np
         import matplotlib.pyplot as plt
-
+        store_path = self.dump_dir + f"/{title}.png"
 
         labels, values = zip(*Counter(list).items())
 
@@ -71,4 +73,5 @@ class Dumper():
 
         plt.bar(indexes, values, width)
         plt.xticks(indexes + width * 0.5, labels)
-        plt.show()
+        plt.savefig(str(store_path))
+        plt.close()

@@ -52,6 +52,8 @@ class Experiment():
             episode_info['epsilon'] = self.agent.get_epsilon()
 
             self.dumper.plot_episode_info(episode_info)
+
+        self.dumper.plot_experiment_info()
         
         self.env.close()
         self.dumper.close()

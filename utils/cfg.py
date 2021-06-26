@@ -56,10 +56,10 @@ class CfgMaker():
 
     def make_dqn_net_config(self):
         self.dqn_net_cfg = {
-            'name'      : "dqn_net_cfg",
+            'name'         : "dqn_net_cfg",
             'fc1Dims'      : 1024,
             'fc2Dims'      : 512,
-            'lr'           : 0.0001,
+            'lr'           : 0.001,
             'keys'         : ['action_range','action_dtype','num_actions','obs_shape','obs_range','obs_dtype'],
             'device'       : self.device
         }
@@ -90,7 +90,7 @@ class CfgMaker():
 
         replay_cfg = {
             'name'              : 'replay_cfg',
-            'replay_dim'        : 1000000,
+            'replay_dim'        : 10000,
             'replay_keys'       : ['obs_shape', 'obs_dtype', 'action_dtype']
         }
 
@@ -98,13 +98,13 @@ class CfgMaker():
             'name'              : 'traing_cfg',
             'replay_cfg'        : replay_cfg,
             'batch_size'        : 64,
-            'min_replay_dim'    : 2048,
+            'min_replay_dim'    : 1024,
         }
 
         self.cfg_agent = {
             'name'      : "cfg_agent",
             'train_cfg' : traing_cfg,
-            'gamma'             : 0.99
+            'gamma'     : 0.99
         }
 
         self.all_configs['cfg_agent'] = self.cfg_agent
@@ -131,7 +131,7 @@ class CfgMaker():
     def make_cfg_experiment(self):
         self.cfg_experiment = {
             'name'              : "cfg_experiment",
-            'max_allowed_steps' : 50,
+            'max_allowed_steps' : 1,
             'num_episodes'      : 200,
         }
 
@@ -143,7 +143,7 @@ class CfgMaker():
     def make_cfg_env(self):
         self.cfg_env = {
             'name'      :   'cfg_env',
-            'env_name'  :   'CartPole-v0',#'MountainCarContinuous-v0',
+            'env_name'  :   'CartPole-v1',#'MountainCarContinuous-v0',
             'render'    :   False,
         }
         self.all_configs['cfg_env'] = self.cfg_env

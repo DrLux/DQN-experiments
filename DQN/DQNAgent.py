@@ -48,19 +48,21 @@ class DQN_Train_Agent(TrainAgent):
         return action 
     
     def chooseAction(self,obs):
-        greedy = self.exploration.get_eploration_flag() 
-        if greedy:
+        exploration_step_flag = self.exploration.exploration_step_flag() 
+        if exploration_step_flag:
+            action = self.sample_random_action()
+            dump_qvalue = None
+        else:
             obs = torch.tensor(obs).float().detach()
+            obs = obs.unsqueeze(0)  # add batch size
             qValues = self.dqn(obs) # pass it through the network to get your estimations
             action = torch.argmax(qValues) # pick the highest
             action =  action.item() # return an int instead of a tensor containing the index of the best action
             dump_qvalue = torch.max(qValues).item()
-        else:
-            action = self.sample_random_action()
-            dump_qvalue = None
+            
         
 
-        self.step_info_dump['greedy'] = greedy
+        self.step_info_dump['greedy'] = not exploration_step_flag
         self.step_info_dump['qvalue'] = dump_qvalue
         return action  
 
@@ -77,22 +79,20 @@ class DQN_Train_Agent(TrainAgent):
             self.step_info_dump['epsilon'] = self.get_epsilon()
         else:
         
-            states, actions, rewards, new_states, dones = self.memory.sample(self.batch_size)
+            state, action, reward, new_state, done = self.memory.sample(self.batch_size)
 
-            states          = torch.tensor(states , dtype=torch.float32).to(self.dqn.device)
-            actions         = torch.tensor(actions, dtype=torch.long   ).to(self.dqn.device)
-            rewards         = torch.tensor(rewards, dtype=torch.float32).to(self.dqn.device)
-            next_state      = torch.tensor(new_states, dtype=torch.float32).to(self.dqn.device)
-            dones           = torch.tensor(dones  , dtype=torch.bool   ).to(self.dqn.device)
-
-            self.dqn.optimizer.zero_grad()  # resets all the tensor derivatives
+            state          = torch.tensor(state , dtype=torch.float32).to(self.dqn.device)
+            action         = torch.tensor(action, dtype=torch.long   ).to(self.dqn.device)
+            reward         = torch.tensor(reward, dtype=torch.float32).to(self.dqn.device)
+            next_state      = torch.tensor(new_state, dtype=torch.float32).to(self.dqn.device)
+            done           = torch.tensor(done  , dtype=torch.bool   ).to(self.dqn.device)
 
             batchIndices = np.arange(self.batch_size, dtype=np.int64)  # i learned how to spell indices
-            qValue = self.dqn(states)[batchIndices, actions]
+            qValue = self.dqn(state)[batchIndices, action]
 
             next_qValue = self.dqn(next_state)        #   values of all actions
             next_qValue = torch.max(next_qValue, dim=1)[0] #   extract greedy action value
-            next_qValue[dones] = 0.0                    #   filter out post-terminal states
+            next_qValue[done] = 0.0                    #   filter out post-terminal states
 
             qTarget = reward + self.gamma * next_qValue
             loss = self.dqn.loss(qTarget, qValue)
@@ -124,8 +124,9 @@ class DQN_Eval_Agent(EvalAgent):
     def chooseAction(self,obs):
         obs = obs.unsqueeze(0)  # add batch size
         qValues = self.dqn(obs) # pass it through the network to get your estimations
-        action = torch.argmax(qValues) # pick the highest
-        return action.item()  # return an int instead of a tensor containing the index of the best action
+        action = torch.argmax(qValues).item() # pick the highest return an int instead of a tensor containing the index of the best action
+
+        return action  
 
 
 class DqnAgent(Agent):
