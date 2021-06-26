@@ -14,6 +14,7 @@ class DQN_Train_Agent(TrainAgent):
         self.num_actions = agent_cfg['num_actions']
         self.train_cfg = self.agent_cfg['train_cfg']
         self.action_dtype = self.agent_cfg['action_dtype']
+        self.gamma = self.agent_cfg['gamma']
 
         
         self.net_cfg = agent_cfg['net_config']
@@ -28,9 +29,6 @@ class DQN_Train_Agent(TrainAgent):
         exploration_cfg = self.train_cfg['exploration_cfg']
         self.exploration = Exploration_strategy(exploration_cfg,logger)
 
-        
-    
-    
 
     def __get_replay_cfg(self):        
         for key in self.train_cfg['replay_cfg']['replay_keys']:
@@ -47,38 +45,50 @@ class DQN_Train_Agent(TrainAgent):
         if self.exploration.get_eploration_flag():
             action = self.sample_random_action()
         else:
+            obs = torch.tensor(obs).float().detach()
             qValues = self.dqn(obs) # pass it through the network to get your estimations
             action = torch.argmax(qValues) # pick the highest
             action =  action.item() # return an int instead of a tensor containing the index of the best action
-        
 
         return action  
 
+    def get_epsilon(self):
+        return self.exploration.epsilon
 
-    def learn(self,obs, action, reward, next_obs, done): 
+
+    def learn(self,state, action, reward, next_state, done): 
+        self.storeMemory(state, action, reward, next_state, done)
+        if self.memory.memCount < self.min_replay_dim:   
+            return
         
+        states, actions, rewards, new_states, dones = self.memory.sample(self.batch_size)
+
+        states  = torch.tensor(states , dtype=torch.float32).to(self.dqn.device)
+        actions = torch.tensor(actions, dtype=torch.long   ).to(self.dqn.device)
+        rewards = torch.tensor(rewards, dtype=torch.float32).to(self.dqn.device)
+        next_state = torch.tensor(new_states, dtype=torch.float32).to(self.dqn.device)
+        dones   = torch.tensor(dones  , dtype=torch.bool   ).to(self.dqn.device)
+
         self.dqn.optimizer.zero_grad()  # resets all the tensor derivatives
 
-        reward = torch.tensor(reward).float().detach().to(self.dqn.device)  # put the reward in tensor form and detach it so we dont backprop through it
-        
-        qValues = self.dqn(obs) # predict what reward each action will get
-        nextQValues = self.dqn(next_obs)
+        batchIndices = np.arange(self.batch_size, dtype=np.int64)  # i learned how to spell indices
+        qValue = self.dqn(states)[batchIndices, actions]
 
-        qValues = self.dqn(obs)
-        nextQValues = self.dqn(next_obs)
+        next_qValue = self.dqn(next_state)        #   values of all actions
+        next_qValue = torch.max(next_qValue, dim=1)[0] #   extract greedy action value
+        next_qValue[dones] = 0.0                    #   filter out post-terminal states
 
-        predictedValueOfNow = qValues[0][action]    #   interpret the past
-        futureActionValue = nextQValues[0].max()    #   interpret the future
+        qTarget = reward + self.gamma * next_qValue
+        loss = self.dqn.loss(qTarget, qValue)
 
-        trueValueOfNow = reward + futureActionValue * (1 - done)  # td function
-
-        loss = self.dqn.loss(trueValueOfNow, predictedValueOfNow)
-
+        self.dqn.optimizer.zero_grad()
         loss.backward()
         self.dqn.optimizer.step()
+
         self.exploration.decay_exp()
 
-
+    def storeMemory(self, state, action, reward, nextState, done):
+        self.memory.storeMemory(state, action, reward, nextState, done)
 
 class DQN_Eval_Agent(EvalAgent):
     def __init__(self,eval_cfg,logger):
@@ -92,6 +102,7 @@ class DQN_Eval_Agent(EvalAgent):
         return super(DQN_Eval_Agent, self).sample_random_action()
 
     def chooseAction(self,obs):
+        obs = obs.unsqueeze(0)  # add batch size
         qValues = self.dqn(obs) # pass it through the network to get your estimations
         action = torch.argmax(qValues) # pick the highest
         return action.item()  # return an int instead of a tensor containing the index of the best action
@@ -128,8 +139,14 @@ class DqnAgent(Agent):
     def chooseAction(self,obs):
         return self.agent_state.chooseAction(obs)
 
-    def learn(self,obs, action, reward, next_obs, done):
+    def learn(self,state, action, reward, nextState, done):
         if self.agent_state.state_name == "training":
-            self.train_agent.learn(obs, action, reward, next_obs, done) 
+            self.train_agent.learn(state, action, reward, nextState, done) 
+        else:
+            pass
+
+    def get_epsilon(self):
+        if self.agent_state.state_name == "training":
+            return self.train_agent.get_epsilon()        
         else:
             pass

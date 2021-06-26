@@ -20,7 +20,11 @@ class Exploration_strategy():
         
   
     def decay_exp(self):
-        if self.strategy == "linear":
-            self.epsilon -= self.epsilon_decay  # shrink
-        if self.epsilon < self.epsilon_min: # clamp
+        '''
+        if self.epsilon >= self.epsilon_min: # clamp
+            if self.strategy == "linear":
+                self.epsilon -= self.epsilon_decay  # shrink
+        '''
+        self.epsilon -= self.epsilon_decay
+        if self.epsilon < self.epsilon_min:
             self.epsilon = self.epsilon_min

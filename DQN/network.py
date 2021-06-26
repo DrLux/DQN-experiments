@@ -21,6 +21,7 @@ class Network(torch.nn.Module):
         self.to(self.device)
         self.__get_info_network()
 
+
     def __get_info_network(self):
         parms = [p for p in self.parameters()]
         #print(f"Parameters: {len(parms)}")
@@ -36,10 +37,8 @@ class Network(torch.nn.Module):
 
     def forward(self, x):
         # Preprocess input
-        x = torch.tensor(x).float().detach()  # detach it so we dont backprop through it
         x = x.to(self.device) # and put it on the gpu/cpu
-        x = x.unsqueeze(0)  # add batch size
-        
+
         # pass input to the net
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))

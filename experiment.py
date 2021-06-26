@@ -25,6 +25,7 @@ class Experiment():
     def train(self):
         highScore = -100000
         episode = 0
+        numSamples = 0
         while True:
             done = False
             state = self.env.reset()
@@ -33,18 +34,18 @@ class Experiment():
             while not done:
 
                 action = self.agent.chooseAction(state)
-                state_, reward, done = self.env.step(action)
-                
-                self.agent.learn(state, action, reward, state_, done)
-                state = state_
+                new_state, reward, done = self.env.step(action)
+                self.agent.learn(state, action, reward, new_state, done)
+                state = new_state
 
                 score += reward
                 frame += 1
+                numSamples += 1
 
             highScore = max(highScore, score)
 
-            print(( "ep {}: high-score {:12.3f}, "
-                    "score {:12.3f}, last-episode-time {:4d}").format(
-                episode, highScore, score,frame))
+            print(( "ep {:4d}: high-score {:12.3f}, "
+                "score {:12.3f}, epsilon {:5.3f}").format(
+            episode, highScore, score, self.agent.get_epsilon()))
 
             episode += 1

@@ -35,7 +35,7 @@ class CfgMaker():
             'epsilon'           : 0.1,            
             'epsilon_decay'     : 0.00005,  
             'epsilon_min'       : 0.001,
-            'strategy'          : "strategy"         
+            'strategy'          : "linear"         
         }
         self.all_configs['exploration_cfg'] = self.exploration_cfg
         self.dump_cfg(self.all_configs)
@@ -92,6 +92,7 @@ class CfgMaker():
         self.cfg_agent = {
             'name'      : "cfg_agent",
             'train_cfg' : traing_cfg,
+            'gamma'             : 0.99
         }
 
         self.all_configs['cfg_agent'] = self.cfg_agent
