@@ -17,7 +17,7 @@ class State():
         return self.obs_space.shape
 
     def show_state_env_info(self):
-        self.logger.info_log("\n\t ################# ")
+        self.logger.info_log("\t ################# ")
         self.logger.info_log("\t# Dump State Info Environment: ")
         self.logger.info_log(f"\t# State_space: {self.obs_space}")
         self.logger.info_log(f"\t# State Shape: {self.obs_space.shape}")
@@ -82,7 +82,7 @@ class Action():
         return self.env.action_space.sample()
 
     def show_action_env_info(self):
-        self.logger.info_log("\n\t ################# ")
+        self.logger.info_log("\t ################# ")
         self.logger.info_log("\t# Dump Action Info Environment: ")
         self.logger.info_log(f"\t# Random Action: {self.sample_random_action()}")
         self.logger.info_log(f"\t# Action_space: {self.action_space}")
@@ -119,7 +119,7 @@ class Env():
         self.render_flag = flag
 
     def reset(self):
-        self.logger.info_log("Resetting Environment")
+        self.logger.dbg_log("Resetting Environment")
         init_obs = self.env.reset()
         return init_obs 
          
@@ -130,6 +130,7 @@ class Env():
         if self.render_flag:
             self.env.render()
         new_state,rew,done,info = self.env.step(action)
+        self.logger.dbg_log("Compute step in the env")
         return new_state,rew,done
 
     def handle_kb_int(self):

@@ -1,9 +1,3 @@
 TODO:
-
-- fissare i seed
-- sistemare i print nei logs
-- verificare il funzionamento tra dev,debug e release
-- verifica estrazione info dal tensorboard
 - aggiungere metriche al dumper (qvalue vs real discounted reward)
-- aggiungere il decoratore: debug che prenda il timer e la ram occupata
 - alla fine spostare tutto su un repo a parte pubblica

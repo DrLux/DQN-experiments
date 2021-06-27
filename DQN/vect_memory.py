@@ -2,13 +2,14 @@ import numpy as np
 from pathlib import Path
 
 class vect_ReplayBuffer(): 
-    def __init__(self, replay_cfg):
+    def __init__(self, replay_cfg,logger):
 
         replay_dim      = replay_cfg['replay_dim']
         obs_shape       = replay_cfg['obs_shape']
         obs_dtype       = replay_cfg['obs_dtype']
         action_dtype    = replay_cfg['action_dtype']
         self.mem_path   = replay_cfg['mem_path']
+        self.logger = logger
 
 
         self.memSize = replay_dim
@@ -30,6 +31,8 @@ class vect_ReplayBuffer():
         self.doneMemory[memIndex]       = done
 
         self.memCount += 1
+        self.logger.dbg_log(f"Memory store transition. MemMax {self.memCount}")
+
 
     def sample(self, sampleSize):
         memMax = min(self.memCount, self.memSize)
@@ -41,10 +44,11 @@ class vect_ReplayBuffer():
         nextStates  = self.nextStateMemory[batchIndecies]
         dones       = self.doneMemory[batchIndecies]
 
+        self.logger.dbg_log(f"Memory sample {sampleSize} elements. MemMax {memMax}")
         return states, actions, rewards, nextStates, dones
 
     def dump_memory(self, episode):
-        mem_filename = "mem_{episode}.npz"
+        mem_filename = f"mem_{episode}.npz"
         path = Path(self.mem_path) / mem_filename 
 
         np.savez_compressed(str(path),

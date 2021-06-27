@@ -11,10 +11,14 @@ class Exploration_strategy():
 
 
     def exploration_step_flag(self):
-        return np.random.random() < self.epsilon
+        random_value = np.random.random() 
+        self.logger.dbg_log(f"Exploration sample {random_value} and epsilon is {self.epsilon}.")
+        return  random_value < self.epsilon
 
     def decay_exp(self):
+        self.logger.dbg_log(f"Exploration trying to decay exploration rate.")
         if self.epsilon > self.epsilon_min: # clamp
+            self.logger.dbg_log(f"Exploration decaying exploration rate.")
             if self.strategy == "linear":
                 self.epsilon -= self.epsilon_decay  # shrink
         

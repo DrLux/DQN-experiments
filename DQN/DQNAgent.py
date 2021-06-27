@@ -1,6 +1,6 @@
 from drl_framework.agent import *
 from DQN.network import Network
-from DQN.vect_replay_buffer import vect_ReplayBuffer
+from DQN.vect_memory import vect_ReplayBuffer
 from utils.utils import print_dict
 from DQN.exploration import Exploration_strategy
 from collections import defaultdict
@@ -18,12 +18,13 @@ class DQN_Train_Agent(TrainAgent):
         self.action_dtype = self.agent_cfg['action_dtype']
         self.gamma = self.agent_cfg['gamma']
         self.step_info_dump = defaultdict(list)
+        self.logger = logger
 
         self.net_cfg = agent_cfg['dqn_cfg']
         self.dqn = Network(self.net_cfg,self.state_name,logger) 
 
         self.replay_cfg = self.__get_replay_cfg()
-        self.memory = vect_ReplayBuffer(self.replay_cfg)
+        self.memory = vect_ReplayBuffer(self.replay_cfg,self.logger)
 
         self.batch_size = self.train_cfg['batch_size']
         self.min_replay_dim = self.train_cfg['min_replay_dim']
@@ -33,6 +34,7 @@ class DQN_Train_Agent(TrainAgent):
 
     def get_info_dump(self):
         temp_dict = self.step_info_dump 
+        self.logger.dbg_log("Agent get the temp_dict")
         self.step_info_dump = dict()
         return temp_dict
 
@@ -44,6 +46,7 @@ class DQN_Train_Agent(TrainAgent):
 
 
     def sample_random_action(self):
+        self.logger.dbg_log("Agent sampling random action")
         action = super(DQN_Train_Agent, self).sample_random_action()
         action = action[0]
         return action 
@@ -54,22 +57,20 @@ class DQN_Train_Agent(TrainAgent):
             action = self.sample_random_action()
             dump_qvalue = None
         else:
+            self.logger.dbg_log("Agent Calculate best action")
             obs = torch.tensor(obs).float().detach()
             obs = obs.unsqueeze(0)  # add batch size
             qValues = self.dqn(obs) # pass it through the network to get your estimations            
             action = torch.argmax(qValues) # pick the highest
             action =  action.item() # return an int instead of a tensor containing the index of the best action
-            dump_qvalue = torch.max(qValues).item()
-            
-        
+            dump_qvalue = torch.max(qValues).item()     
 
         self.step_info_dump['greedy'] = not exploration_step_flag
         self.step_info_dump['qvalue'] = dump_qvalue
         return action  
 
     def get_epsilon(self):
-        epsilon = self.exploration.epsilon
-        
+        epsilon = self.exploration.epsilon        
         return epsilon
 
 
@@ -78,6 +79,7 @@ class DQN_Train_Agent(TrainAgent):
         if self.memory.memCount < self.min_replay_dim:
             loss = 0 
             self.step_info_dump['epsilon'] = self.get_epsilon()
+            self.logger.dbg_log("Agent doesn't learn nothing in this step")
         else:
         
             state, action, reward, new_state, done = self.memory.sample(self.batch_size)
@@ -101,8 +103,12 @@ class DQN_Train_Agent(TrainAgent):
             self.dqn.optimizer.zero_grad()
             loss.backward()
             self.dqn.optimizer.step()
+            self.logger.dbg_log("Agent compute backpropagation")
+
 
             self.exploration.decay_exp()
+            self.logger.dbg_log("Agent decay esploration.")
+
 
         self.step_info_dump['loss'] = loss
         self.step_info_dump['epsilon'] = self.get_epsilon()
@@ -119,7 +125,10 @@ class DQN_Train_Agent(TrainAgent):
     def handle_kb_int(self):
         self.logger.info_log("Received keyboard interrupt. Closing Train Env")
         self.dqn.handle_kb_int()
-        self.memory.handle_kb_int()   
+        self.memory.handle_kb_int()  
+
+    def dump_memory(self,episode):
+        self.memory.dump_memory(episode)
 
 class DQN_Eval_Agent(EvalAgent):
 
@@ -208,3 +217,9 @@ class DqnAgent(Agent):
 
     def handle_kb_int(self):
         self.agent_state.handle_kb_int()
+
+    def dump_memory(self,episode):
+        if self.agent_state.state_name == "training":
+            self.agent_state.dump_memory(episode)
+        else:
+            pass

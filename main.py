@@ -15,7 +15,7 @@ if __name__ == "__main__":
     cfg_experiment = cfg.make_cfg_experiment()
     cfg_env = cfg.make_cfg_env()
     cfg_agent = cfg.make_cfg_agent()
-    cfg.show_configs()
+    #cfg.show_configs()
     
     
     #Instantiate objects
@@ -25,10 +25,11 @@ if __name__ == "__main__":
     info_env = env.get_agent_info()
     agent = DqnAgent(cfg_agent,info_env,logger)
     experiment = Experiment(cfg_experiment,env,agent,dumper,logger)
-    
+    cfg.dump_cfg()
+
         
     try:
-        #experiment.train()
+        experiment.train()
         experiment.test()
 
     except KeyboardInterrupt:

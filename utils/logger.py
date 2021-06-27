@@ -2,15 +2,15 @@ import logging
 import time 
 import tracemalloc
 from pathlib import Path
-
+from inspect import getframeinfo, stack
 
 class Logger():
     def __init__(self, cfg):
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(funcName)s - %(message)s', datefmt='%d-%b-%y %H:%M:%S')
+        formatter = logging.Formatter('%(asctime)s - %(levelname)s -  %(message)s', datefmt='%d-%b-%y %H:%M:%S')
         tracemalloc.start()
-        self.DEV_LEVEL = cfg['DEV_LEVEL']
+        self.dev_level = cfg['dev_level']
 
-        if self.DEV_LEVEL == "DEVELOPMENT":        
+        if self.dev_level == "DEVELOPMENT":        
             # DEBUG logger
             self.debug_logger = logging.getLogger('debug_logger')
             path = Path(cfg['log_dir']) / Path(cfg['dbg_log_file'])
@@ -33,17 +33,26 @@ class Logger():
         
     
     def dbg_log(self, text, params=None):
-        memory_used, _ = tracemalloc.get_traced_memory()
-        memory_used = memory_used / 10 ** 6
-        if params:
-            self.debug_logger.debug(f' Ram: {memory_used} MB | {text} \n Dump: {params}')
-        else:
-            self.debug_logger.debug(f' Ram: {memory_used} MB | {text}')
+        if self.dev_level == "DEVELOPMENT":
+            memory_used, _ = tracemalloc.get_traced_memory()
+            memory_used = memory_used / 10 ** 6
+            caller = getframeinfo(stack()[1][0])
+            caller = f"{Path(caller.filename).name} : Line({caller.lineno})"
+            text = f"{caller} - {text}"
+
+            if params:
+                self.debug_logger.debug(f' Ram: {memory_used} MB | {text} \n Dump: {params}')
+            else:
+                self.debug_logger.debug(f' Ram: {memory_used} MB | {text}')
 
     def info_log(self,text,params=None):
-        if self.DEV_LEVEL == "DEVELOPMENT":  
+        caller = getframeinfo(stack()[1][0])
+        caller = f"{Path(caller.filename).name} : Line({caller.lineno})"
+        
+        if self.dev_level == "DEVELOPMENT":  
             self.dbg_log(text)
 
+        text = f"{caller} - {text}"
         if params:
             self.info_logger.info(f' {text} \n Params: {params}')
             print(f' {text} \n Params: {params}')

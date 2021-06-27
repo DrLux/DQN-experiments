@@ -8,13 +8,13 @@ import json
 class CfgMaker():
 
     def __init__(self,load=False):
-        # Create initial folders
-        self.DEV_LEVEL = "DEVELOPMENT"
-
-        if self.DEV_LEVEL == "DEVELOPMENT":
+        self.all_configs = dict()
+        self.load_cfg()
+        
+        if self.all_configs['cfg_experiment']['development'] == "DEVELOPMENT":
             self.experiment_folder = 'experiments/results/dev'
         else: 
-            self.experiment_folder = 'experiments/results/'+str(datetime.datetime.now().strftime('%d-%b-%y %H:%M:%S'))
+            self.experiment_folder = 'experiments/results/'+str(datetime.datetime.now().strftime('%d-%b-%y_%H:%M:%S'))
 
         #  create folders
         make_dir(self.experiment_folder)
@@ -23,8 +23,6 @@ class CfgMaker():
         make_dir(self.conf_dir)
         self.conf_dir = self.conf_dir / 'config.json'
 
-        self.all_configs = dict()
-        self.load_cfg()
 
 
     def make_cfg_logger(self):
@@ -33,6 +31,7 @@ class CfgMaker():
 
         cfg_logger = self.all_configs['cfg_logger'] 
         cfg_logger['log_dir'] = str(log_dir)
+        cfg_logger['dev_level'] = self.all_configs['cfg_experiment']['development']
 
         return cfg_logger
     
@@ -88,15 +87,16 @@ class CfgMaker():
 
         return cfg_dumper
 
-    def dump_cfg(self, cfg):
+    def dump_cfg(self):
         with open(str(self.conf_dir), 'w') as outfile:
-            json.dump(cfg, outfile, indent=4)
+            json.dump(self.all_configs, outfile, indent=4)
     
     def load_cfg(self):
-        print(f"Loading configs from: {self.conf_dir}")
-        self.show_configs()
-        with open(str(self.conf_dir), 'rb') as handle:
+        path = "experiments/original_config/original_config.json"
+        print(f"Loading configs from: {path}")
+        with open(str(path), 'rb') as handle:
             self.all_configs = json.load(handle)
+        self.show_configs()
 
     def show_configs(self):        
         for conf_name, configs in self.all_configs.items():
