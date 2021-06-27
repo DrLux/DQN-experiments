@@ -1,0 +1,116 @@
+{
+    "cfg_logger": {
+        "name": "cfg_logger",
+        "log_dir": "experiments/results/dev/logdir",
+        "info_log_file": "infolog.txt",
+        "dbg_log_file": "dbglog.txt"
+    },
+    "cfg_dumper": {
+        "name": "cfg_dumper",
+        "dump_dir": "experiments/results/dev/dump",
+        "dump_file": "dump.txt",
+        "labels_barplot": {
+            "greedy": [
+                "greedy",
+                "random"
+            ]
+        }
+    },
+    "cfg_env": {
+        "name": "cfg_env",
+        "env_name": "CartPole-v1",
+        "render": false
+    },
+    "dqn_net_cfg": {
+        "name": "dqn_net_cfg",
+        "fc1Dims": 1024,
+        "fc2Dims": 512,
+        "lr": 0.001,
+        "keys": [
+            "action_range",
+            "action_dtype",
+            "num_actions",
+            "obs_shape",
+            "obs_range",
+            "obs_dtype"
+        ],
+        "device": "cuda:0"
+    },
+    "cfg_experiment": {
+        "name": "cfg_experiment",
+        "total_train_episodes": 50,
+        "max_allowed_steps": 100,
+        "total_test_episodes": 2,
+        "save_ckp_int": 50,
+        "seed"  : 1,
+        "development": "Test"
+    },
+
+    "exploration_cfg": {
+        "name": "exploration_cfg",
+        "epsilon": 0.1,
+        "epsilon_decay": 5e-05,
+        "epsilon_min": 0.001,
+        "strategy": "linear"
+    },
+
+    "cfg_agent": {
+        "name": "cfg_agent",
+        "gamma": 0.99,
+        "policy_type": "DQN",
+        "action_range": [
+            0,
+            2
+        ],
+        "action_dtype": "int64",
+        "num_actions": 2,
+        "obs_shape": [
+            4
+        ],
+        "obs_range": [
+            [
+                -4.800000190734863,
+                -3.4028234663852886e+38,
+                -0.41887903213500977,
+                -3.4028234663852886e+38
+            ],
+            [
+                4.800000190734863,
+                3.4028234663852886e+38,
+                0.41887903213500977,
+                3.4028234663852886e+38
+            ]
+        ],
+        "obs_dtype": "float32"
+    },    
+    "train_cfg": {
+        "name": "train_cfg",
+        "batch_size": 64,
+        "min_replay_dim": 1024
+    },
+    "replay_cfg": {
+        "name": "replay_cfg",
+        "replay_dim": 10000,
+        "replay_keys": [
+            "obs_shape",
+            "obs_dtype",
+            "action_dtype"
+        ]
+    },
+    "dqn_net_cfg": {
+        "name": "dqn_net_cfg",
+        "fc1Dims": 1024,
+        "fc2Dims": 512,
+        "lr": 0.001,
+        "keys": [
+            "action_range",
+            "action_dtype",
+            "num_actions",
+            "obs_shape",
+            "obs_range",
+            "obs_dtype"
+        ],
+        "device": "cuda:0",
+        "ckp_path": "experiments/results/dev/ckp"
+    }                       
+}
