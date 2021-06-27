@@ -1,7 +1,8 @@
+from logging import exception
 from agent import *
 from DQN.network import Network
 import torch
-from DQN.replay_buffer import vect_ReplayBuffer
+from DQN.vect_replay_buffer import vect_ReplayBuffer
 from utils.utils import print_dict
 from DQN.exploration import Exploration_strategy
 from collections import defaultdict
@@ -18,8 +19,7 @@ class DQN_Train_Agent(TrainAgent):
         self.gamma = self.agent_cfg['gamma']
         self.step_info_dump = defaultdict(list)
         
-        self.net_cfg = agent_cfg['dqn_cfg']
-        self.dqn = Network(self.net_cfg,self.state_name,logger)
+        
 
         self.replay_cfg = self.__get_replay_cfg()
         self.memory = vect_ReplayBuffer(self.replay_cfg)
@@ -36,7 +36,7 @@ class DQN_Train_Agent(TrainAgent):
         return temp_dict
 
 
-    def __get_replay_cfg(self):        
+    def __get_replay_cfg(self):
         for key in self.train_cfg['replay_cfg']['replay_keys']:
             self.train_cfg['replay_cfg'].update({key : self.agent_cfg[key]})
         return self.train_cfg['replay_cfg']
@@ -115,6 +115,10 @@ class DQN_Train_Agent(TrainAgent):
     def load_checkpoint(self,ckp_name):
         self.dqn.load_model(ckp_name)
 
+    def handle_kb_int(self):
+        self.info_log("Received keyboard interrupt. Closing Train Env")
+        self.dqn.handle_kb_int()
+        self.memory.handle_kb_int()   
 
 class DQN_Eval_Agent(EvalAgent):
 
@@ -137,6 +141,9 @@ class DQN_Eval_Agent(EvalAgent):
 
         return action  
 
+    def handle_kb_int(self):
+        self.info_log("Received keyboard interrupt. Closing Eval Agent")
+
 
 class DqnAgent(Agent):
     
@@ -152,7 +159,7 @@ class DqnAgent(Agent):
         self.eval_agent = DQN_Eval_Agent(self.cfg,logger)
         self.agent_state = self.train_agent 
         self.logger.info_log(f" Init Agent in state {self.agent_state.state_name}")
-        
+               
         
 
     def __get_net_cfg(self):        
@@ -197,3 +204,6 @@ class DqnAgent(Agent):
 
     def load_checkpoint(self,ckp_name):
         self.agent_state.load_checkpoint(ckp_name)
+
+    def handle_kb_int(self):
+        self.agent_state.handle_kb_int()

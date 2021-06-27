@@ -21,7 +21,8 @@ class Experiment():
         if self.last_ckp_name:
             self.agent.load_checkpoint(self.last_ckp_name)
         else:
-            list_ckps = list(Path("./experiments/results/dev/ckp").glob("*.ckp"))
+            ckp_folder = self.agent.cfg['dqn_cfg']['ckp_path']
+            list_ckps = list(Path(ckp_folder).glob("*.ckp"))
             list_ckps.sort()
             if list_ckps != []:
                 last_ckp_name = list_ckps[-1].name

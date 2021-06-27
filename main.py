@@ -1,7 +1,7 @@
 from dumper import Dumper
 from utils.cfg import CfgMaker
 from env import Env 
-from utils.log import Logger
+from utils.logger import Logger
 from DQN.DQNAgent import DqnAgent
 from experiment import Experiment
 from utils.utils import *
@@ -28,10 +28,11 @@ if __name__ == "__main__":
     
         
     try:
-        experiment.train()
+        #experiment.train()
         experiment.test()
 
     except KeyboardInterrupt:
-        logger.handle_kb_int()
         env.handle_kb_int()
-        dumper.close()
+        dumper.handle_kb_int()
+        agent.handle_kb_int()
+        logger.handle_kb_int()

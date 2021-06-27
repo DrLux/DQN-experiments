@@ -90,3 +90,16 @@ class Network(torch.nn.Module):
         else:
             episode = 0
         return episode
+
+    def handle_kb_int(self):
+        ckp = {
+            'model_state_dict': self.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            'loss': self.loss,
+        }
+        ckp_name = f"kb.ckp"
+        path = Path(self.ckp_path) / (ckp_name)
+        torch.save(ckp, str(path))
+        self.logger.info_log(f"Received keyboard interrupt. Storing ckp at {path}")
+
+    

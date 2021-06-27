@@ -20,7 +20,7 @@ class Dumper():
         
                 
 
-    def close(self):
+    def handle_kb_int(self):
         self.writer.close()
 
     def plot_scalar(self,label,y,x):

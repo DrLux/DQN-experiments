@@ -158,6 +158,7 @@ class Env():
         return str(self.state.get_state_dtype())
 
     def close(self):
+        self.info_log("Received keyboard interrupt. Closing Env")
         self.env.close()
 
     def get_agent_info(self):

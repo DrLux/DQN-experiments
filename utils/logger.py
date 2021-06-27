@@ -57,6 +57,6 @@ class Logger():
         tracemalloc.stop()
 
     def handle_kb_int(self):
-        self.info_log("Received keyboard interrupt")
+        self.info_log("Received keyboard interrupt. Closing Logger")
         self.close()
 

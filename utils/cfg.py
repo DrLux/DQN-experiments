@@ -40,8 +40,12 @@ class CfgMaker():
         ckp_dir = Path(self.experiment_folder) / Path("ckp")
         make_dir(ckp_dir)
 
+        mem_dir = Path(self.experiment_folder) / Path("mem")
+        make_dir(mem_dir)
+
 
         # Get all configs
+        replay_cfg      = self.all_configs['replay_cfg']
         exploration_cfg = self.all_configs['exploration_cfg'] 
         train_cfg       = self.all_configs['train_cfg']
         cfg_agent  = self.all_configs['cfg_agent']
@@ -50,11 +54,13 @@ class CfgMaker():
             dqn_cfg  = self.all_configs['dqn_net_cfg']
         
         # Update configs
-        dqn_cfg['ckp_path'] = str(ckp_dir)
+        dqn_cfg['ckp_path']     = str(ckp_dir)
+        replay_cfg['mem_path']  = str(mem_dir)
         if "total_train_episodes" in self.all_configs['cfg_experiment']:
             exploration_cfg["total_train_episodes"] = self.all_configs['cfg_experiment']["total_train_episodes"]
         
         # Pack configs 
+        train_cfg['replay_cfg'] = replay_cfg
         train_cfg['exploration_cfg'] = exploration_cfg
         cfg_agent['train_cfg'] = train_cfg       
         cfg_agent['dqn_cfg'] = dqn_cfg        
@@ -78,8 +84,6 @@ class CfgMaker():
         cfg_dumper['dump_dir'] = str(dump_dir)
 
         return cfg_dumper
-
-
 
     def dump_cfg(self, cfg):
         with open(str(self.conf_dir), 'w') as outfile:
