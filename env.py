@@ -111,6 +111,9 @@ class Env():
         if self.render_flag:
             self.env.render()
 
+    def set_render(self, flag):
+        self.render_flag = flag
+
     def reset(self):
         self.logger.info_log("Resetting Environment")
         init_obs = self.env.reset()
@@ -133,7 +136,7 @@ class Env():
         return self.action.get_action_range()
 
     def get_action_dtype(self):
-        return self.action.get_action_dtype()
+        return str(self.action.get_action_dtype())
 
     def get_num_acts(self):
         return self.action.get_num_acts()
@@ -147,10 +150,24 @@ class Env():
         return self.state.get_obs_shape()
 
     def get_state_range(self):
-        return self.state.get_state_range()
+        range = self.state.get_state_range()
+        range = ( range[0].tolist(), range[1].tolist()) 
+        return range
 
     def get_state_dtype(self):
-        return self.state.get_state_dtype()
+        return str(self.state.get_state_dtype())
 
     def close(self):
         self.env.close()
+
+    def get_agent_info(self):
+        info_env = {
+            'action_range'  : self.get_action_range(),
+            'action_dtype'  : self.get_action_dtype(),
+            'num_actions'   : self.get_num_acts(),
+
+            'obs_shape'     : self.get_obs_shape(),
+            'obs_range'     : self.get_state_range(),
+            'obs_dtype'     : self.get_state_dtype(),
+            }
+        return info_env

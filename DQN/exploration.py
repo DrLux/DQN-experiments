@@ -6,7 +6,7 @@ class Exploration_strategy():
         self.epsilon            = exploration_cfg['epsilon']            # chance of random action
         self.epsilon_decay      = exploration_cfg['epsilon_decay']      # how much the chance shrinks each step
         self.epsilon_min        = exploration_cfg['epsilon_min']        # minimum for the chance, so you never fully stop exploring
-        self.num_episode        = exploration_cfg['num_episode']
+        self.total_train_episodes        = exploration_cfg['total_train_episodes']
         self.strategy           = exploration_cfg['strategy']
         self.logger             = logger
 

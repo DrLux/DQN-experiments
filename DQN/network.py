@@ -2,17 +2,24 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as F
+from pathlib import Path
 
 class Network(torch.nn.Module):
-    def __init__(self, cfg):
+    def __init__(self, cfg,mode,logger):
         super().__init__()
         self.obs_shape      = cfg['obs_shape']
         self.num_actions    = cfg['num_actions']
         self.fc1Dims        = cfg['fc1Dims']
         self.fc2Dims        = cfg['fc2Dims']
         self.lr             = cfg['lr']
-        self.device         = cfg['device']
+        self.ckp_path       = cfg['ckp_path']
+        if cfg['device']:
+            self.device = cfg['device']
+        else:
+            self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.create_model()
+        self.set_net_mode(mode)
+        self.logger = logger 
 
 
         #   pytorch stuff
@@ -44,4 +51,42 @@ class Network(torch.nn.Module):
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
 
-        return x
+        return x    
+
+    def set_net_mode(self,mode):
+        if mode == "training":
+            self.train()
+        else:
+            self.eval()
+
+    def save_model(self,episode=None):
+        ckp = {
+            'model_state_dict': self.state_dict(),
+            'optimizer_state_dict': self.optimizer.state_dict(),
+            'loss': self.loss,
+        }
+
+        if episode:
+            ckp['episode'] = episode
+
+        ckp_name = f"ep_{episode}.ckp"
+        path = Path(self.ckp_path) / (ckp_name)
+        torch.save(ckp, str(path))
+        self.logger.info_log(f"Storing ckp at {path}")
+
+        return ckp_name
+
+
+    def load_model(self, ckp_name):
+        path =  Path(self.ckp_path) / ckp_name
+        checkpoint = torch.load(str(path))
+        self.load_state_dict(checkpoint['model_state_dict'])
+        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        self.loss = checkpoint['loss']
+        self.logger.info_log(f"Loading ckp from {path}")
+        
+        if "episode" in checkpoint:
+            episode =  checkpoint['episode']
+        else:
+            episode = 0
+        return episode

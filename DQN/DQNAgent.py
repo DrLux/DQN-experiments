@@ -18,8 +18,8 @@ class DQN_Train_Agent(TrainAgent):
         self.gamma = self.agent_cfg['gamma']
         self.step_info_dump = defaultdict(list)
         
-        self.net_cfg = agent_cfg['net_config']
-        self.dqn = Network(self.net_cfg)
+        self.net_cfg = agent_cfg['dqn_cfg']
+        self.dqn = Network(self.net_cfg,self.state_name,logger)
 
         self.replay_cfg = self.__get_replay_cfg()
         self.memory = vect_ReplayBuffer(self.replay_cfg)
@@ -109,20 +109,29 @@ class DQN_Train_Agent(TrainAgent):
     def storeMemory(self, state, action, reward, nextState, done):
         self.memory.storeMemory(state, action, reward, nextState, done)
 
+    def save_checkpoint(self,episode):
+        return self.dqn.save_model(episode)
+
+    def load_checkpoint(self,ckp_name):
+        self.dqn.load_model(ckp_name)
+
+
 class DQN_Eval_Agent(EvalAgent):
 
     def __init__(self,eval_cfg,logger):
-        self.net_cfg = eval_cfg['net_config']
-        self.dqn = Network(self.net_cfg)
-
+        self.net_cfg = eval_cfg['dqn_cfg']
         self.state_name = "evaluation"
-        pass
+        self.dqn = Network(self.net_cfg,self.state_name,logger)
+
+    
+    def load_checkpoint(self,ckp_name):
+        self.dqn.load_model(ckp_name)
 
     def sample_random_action(self):
         return super(DQN_Eval_Agent, self).sample_random_action()
 
     def chooseAction(self,obs):
-        obs = obs.unsqueeze(0)  # add batch size
+        obs = torch.tensor(obs).float().detach()
         qValues = self.dqn(obs) # pass it through the network to get your estimations
         action = torch.argmax(qValues).item() # pick the highest return an int instead of a tensor containing the index of the best action
 
@@ -131,28 +140,32 @@ class DQN_Eval_Agent(EvalAgent):
 
 class DqnAgent(Agent):
     
-    def __init__(self,cfg,logger):
+    def __init__(self,cfg,info_env,logger):
+        cfg.update(info_env)
+        
         self.logger = logger
         self.cfg = cfg
         self.__get_net_cfg()
         
         ### Init Agents
         self.train_agent = DQN_Train_Agent(self.cfg,logger)
-        
-        eval_cfg = self.cfg_net
         self.eval_agent = DQN_Eval_Agent(self.cfg,logger)
-        
         self.agent_state = self.train_agent 
         self.logger.info_log(f" Init Agent in state {self.agent_state.state_name}")
+        
+        
 
     def __get_net_cfg(self):        
-        self.cfg_net      = self.cfg['net_config']
-        for key in self.cfg_net['keys']:
-            self.cfg_net.update({key : self.cfg[key]})
+        self.dqn_cfg      = self.cfg['dqn_cfg']
+        for key in self.dqn_cfg['keys']:
+            self.dqn_cfg.update({key : self.cfg[key]})
 
     def set_agent_state(self,flag):
         if flag == "Train":
             self.agent_state = self.train_agent 
+        else:
+            self.agent_state = self.eval_agent 
+
 
     def sample_random_action(self):
         return super(DqnAgent, self).sample_random_action()
@@ -172,5 +185,15 @@ class DqnAgent(Agent):
         else:
             pass
 
+    
+    def save_checkpoint(self,episode):
+        if self.agent_state.state_name == "training":
+            return self.train_agent.save_checkpoint(episode)        
+        else:
+            pass
+
     def get_info_dump(self):
         return self.agent_state.get_info_dump()
+
+    def load_checkpoint(self,ckp_name):
+        self.agent_state.load_checkpoint(ckp_name)

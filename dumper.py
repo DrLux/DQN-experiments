@@ -2,6 +2,9 @@ from torch.utils.tensorboard import SummaryWriter
 import tensorboard as tb
 #import matplotlib.pyplot as plt
 from collections import defaultdict
+import numpy as np
+import matplotlib.pyplot as plt
+
 
 
 
@@ -13,6 +16,8 @@ class Dumper():
         self.writer = SummaryWriter(self.dump_dir)
         self.logger.info_log(f"Started tensorboard session at: {self.writer.get_logdir()}")
         self.buffer = defaultdict(list)
+        self.labels_barplot = cfg_dumper['labels_barplot']
+        
                 
 
     def close(self):
@@ -50,28 +55,22 @@ class Dumper():
 
     
     def plot_episode_info(self,episode_info):
-
         self.plot_scalar("episode/cump_rew",episode_info['cump_rew'],episode_info['episode'])
         self.plot_scalar("episode/length",episode_info['len'],episode_info['episode'])
         self.plot_scalar("episode/epsilon",episode_info['epsilon'],episode_info['episode'])
 
 
-    def plot_experiment_info(self):
+    def plot_experiment_info(self,episode):
         for k,l in self.buffer.items():
-            self._make_bar_plot(k,l)
+            self._make_bar_plot(f"{k}_over_{episode}_eps",l,self.labels_barplot[k])
 
-    def _make_bar_plot(self, title,list):
-        from collections import Counter
-        import numpy as np
-        import matplotlib.pyplot as plt
+    def _make_bar_plot(self,title,list, labels):
         store_path = self.dump_dir + f"/{title}.png"
 
-        labels, values = zip(*Counter(list).items())
+        true_count = sum(list)
+        false_count = len(list) - true_count
 
-        indexes = np.arange(len(labels))
-        width = 1
-
-        plt.bar(indexes, values, width)
-        plt.xticks(indexes + width * 0.5, labels)
+        plt.bar(labels, [true_count,false_count])
         plt.savefig(str(store_path))
         plt.close()
+

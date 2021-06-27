@@ -1,3 +1,5 @@
+from pathlib import Path
+from tqdm import tqdm
 
 class Experiment():
 
@@ -6,18 +8,45 @@ class Experiment():
         self.logger = logger
         self.agent  = agent
         self.max_allowed_steps =  cfg['max_allowed_steps']
-        self.num_episodes = cfg['num_episodes']
+        self.total_train_episodes = cfg['total_train_episodes']
+        self.total_test_episodes = cfg['total_test_episodes']
         self.dumper = dumper
+        self.save_ckp_int = cfg['save_ckp_int']
+        self.last_ckp_name = None
         
-        
+    def test(self):
+        self.env.set_render(True)
+        self.agent.set_agent_state("Test")
+
+        if self.last_ckp_name:
+            self.agent.load_checkpoint(self.last_ckp_name)
+        else:
+            list_ckps = list(Path("./experiments/results/dev/ckp").glob("*.ckp"))
+            list_ckps.sort()
+            if list_ckps != []:
+                last_ckp_name = list_ckps[-1].name
+                self.agent.load_checkpoint(str(last_ckp_name))
+
+        for total_test_episodes in tqdm(range(self.total_test_episodes)):
+            done = False
+            state = self.env.reset()
+            
+            while not done:
+                action = self.agent.chooseAction(state)
+                new_state, reward, done = self.env.step(action)      
+                state = new_state   
+
+
+
    
     def train(self):
+        self.env.set_render(False)
         episode = 0
         episode_info = dict()
         all_steps = 0
         
         #tqdm
-        for episode in range(self.num_episodes):
+        for episode in range(self.total_train_episodes+1):
             done = False
             state = self.env.reset()
 
@@ -45,15 +74,18 @@ class Experiment():
                 self.dumper.plot_step_info(step_experiment_info,step_agent_info)
 
             print(( "ep {:4d}: score {:12.3f}, epsilon {:5.3f}").format(episode, cump_rew, self.agent.get_epsilon()))
-            
+
             episode_info['episode'] = episode
             episode_info['cump_rew'] = cump_rew
             episode_info['len'] = step_episode
             episode_info['epsilon'] = self.agent.get_epsilon()
 
             self.dumper.plot_episode_info(episode_info)
+            
+            if episode % self.save_ckp_int == 0 and episode != 0:
+                self.last_ckp_name = self.agent.save_checkpoint(episode)
 
-        self.dumper.plot_experiment_info()
+        self.dumper.plot_experiment_info(episode)
         
         self.env.close()
         self.dumper.close()
