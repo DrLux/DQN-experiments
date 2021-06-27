@@ -1,11 +1,15 @@
 from pathlib import Path
 from tqdm import tqdm
+from utils.utils import set_seeds
 
 class Experiment():
 
     def __init__(self,cfg,env,agent,dumper,logger):
-        self.env    = env
         self.logger = logger
+        set_seeds(cfg['seed'])
+        self.logger.info_log(f"Set experiment seed at {cfg['seed']} \n")
+        
+        self.env    = env
         self.agent  = agent
         self.max_allowed_steps =  cfg['max_allowed_steps']
         self.total_train_episodes = cfg['total_train_episodes']
@@ -38,7 +42,6 @@ class Experiment():
                 state = new_state   
 
 
-
    
     def train(self):
         self.env.set_render(False)
@@ -56,7 +59,6 @@ class Experiment():
             while not done:
                 step_agent_info = None
                 step_experiment_info = dict()
-
                 action = self.agent.chooseAction(state)
                 new_state, reward, done = self.env.step(action)                
                 self.agent.learn(state, action, reward, new_state, done)

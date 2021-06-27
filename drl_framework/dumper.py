@@ -18,10 +18,11 @@ class Dumper():
         self.buffer = defaultdict(list)
         self.labels_barplot = cfg_dumper['labels_barplot']
         
-                
+    def close(self):
+        self.writer.close()
 
     def handle_kb_int(self):
-        self.writer.close()
+        self.close()
 
     def plot_scalar(self,label,y,x):
         self.writer.add_scalar(label, y, x)

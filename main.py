@@ -1,9 +1,9 @@
-from dumper import Dumper
-from utils.cfg import CfgMaker
-from env import Env 
-from utils.logger import Logger
+from drl_framework.dumper import Dumper
+from drl_framework.env import Env 
 from DQN.DQNAgent import DqnAgent
-from experiment import Experiment
+from drl_framework.experiment import Experiment
+from utils.cfg import CfgMaker
+from utils.logger import Logger
 from utils.utils import *
 
 
@@ -36,3 +36,4 @@ if __name__ == "__main__":
         dumper.handle_kb_int()
         agent.handle_kb_int()
         logger.handle_kb_int()
+

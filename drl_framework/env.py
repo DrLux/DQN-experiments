@@ -1,7 +1,5 @@
 import gym
 
-# QUI MANCA TUTTA LA PARTE SUI SEED 
-
 class State():
     def __init__(self,env, logger):
         self.env            =   env
@@ -101,11 +99,17 @@ class Env():
 
     def __init__(self,cfg_env, logger):
         self.env = gym.make(cfg_env['env_name']).unwrapped
+        
         self.logger = logger
+        self.env.seed(cfg_env['seed'])
+        self.logger.info_log(f"Set env seed at {cfg_env['seed']} \n")
+        
         self.render_flag = cfg_env['render']
         self.action = Action(self.env, self.logger)
         self.state = State(self.env, self.logger)
         self.show_info_env()
+        
+        
 
     def render(self):
         if self.render_flag:
@@ -158,7 +162,7 @@ class Env():
         return str(self.state.get_state_dtype())
 
     def close(self):
-        self.info_log("Received keyboard interrupt. Closing Env")
+        self.logger.info_log("Received keyboard interrupt. Closing Env")
         self.env.close()
 
     def get_agent_info(self):

@@ -1,11 +1,11 @@
-from logging import exception
-from agent import *
+from drl_framework.agent import *
 from DQN.network import Network
-import torch
 from DQN.vect_replay_buffer import vect_ReplayBuffer
 from utils.utils import print_dict
 from DQN.exploration import Exploration_strategy
 from collections import defaultdict
+import torch
+
 
 class DQN_Train_Agent(TrainAgent):
     def __init__(self,agent_cfg,logger):      
@@ -18,8 +18,9 @@ class DQN_Train_Agent(TrainAgent):
         self.action_dtype = self.agent_cfg['action_dtype']
         self.gamma = self.agent_cfg['gamma']
         self.step_info_dump = defaultdict(list)
-        
-        
+
+        self.net_cfg = agent_cfg['dqn_cfg']
+        self.dqn = Network(self.net_cfg,self.state_name,logger) 
 
         self.replay_cfg = self.__get_replay_cfg()
         self.memory = vect_ReplayBuffer(self.replay_cfg)
@@ -55,7 +56,7 @@ class DQN_Train_Agent(TrainAgent):
         else:
             obs = torch.tensor(obs).float().detach()
             obs = obs.unsqueeze(0)  # add batch size
-            qValues = self.dqn(obs) # pass it through the network to get your estimations
+            qValues = self.dqn(obs) # pass it through the network to get your estimations            
             action = torch.argmax(qValues) # pick the highest
             action =  action.item() # return an int instead of a tensor containing the index of the best action
             dump_qvalue = torch.max(qValues).item()
@@ -116,7 +117,7 @@ class DQN_Train_Agent(TrainAgent):
         self.dqn.load_model(ckp_name)
 
     def handle_kb_int(self):
-        self.info_log("Received keyboard interrupt. Closing Train Env")
+        self.logger.info_log("Received keyboard interrupt. Closing Train Env")
         self.dqn.handle_kb_int()
         self.memory.handle_kb_int()   
 
@@ -142,7 +143,7 @@ class DQN_Eval_Agent(EvalAgent):
         return action  
 
     def handle_kb_int(self):
-        self.info_log("Received keyboard interrupt. Closing Eval Agent")
+        self.logger.info_log("Received keyboard interrupt. Closing Eval Agent")
 
 
 class DqnAgent(Agent):

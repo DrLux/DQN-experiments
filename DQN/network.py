@@ -1,12 +1,20 @@
-import torch
+import torch 
 import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as F
 from pathlib import Path
+from utils.utils import set_seeds
+
 
 class Network(torch.nn.Module):
     def __init__(self, cfg,mode,logger):
         super().__init__()
+        self.logger = logger 
+        
+        set_seeds(cfg['seed'])
+        self.logger.info_log(f"Set network seed at {cfg['seed']} \n")
+        
+        
         self.obs_shape      = cfg['obs_shape']
         self.num_actions    = cfg['num_actions']
         self.fc1Dims        = cfg['fc1Dims']
@@ -19,19 +27,16 @@ class Network(torch.nn.Module):
             self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.create_model()
         self.set_net_mode(mode)
-        self.logger = logger 
-
 
         #   pytorch stuff
         self.optimizer = optim.Adam(self.parameters(), lr=self.lr)
         self.loss = nn.MSELoss()
-        self.to(self.device)
-        self.__get_info_network()
+        self.to(self.device)        
 
 
     def __get_info_network(self):
         parms = [p for p in self.parameters()]
-        #print(f"Parameters: {len(parms)}")
+        print(f"Parameters: {parms}")
         print(f"obs_shape:      {self.obs_shape}")
         print(f"num_actions:    {self.num_actions}")
 

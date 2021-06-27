@@ -1,3 +1,6 @@
+import torch
+import numpy as np
+import random
 from pathlib import Path
 import tracemalloc
 import json
@@ -44,3 +47,10 @@ def print_dict(d, text=""):
             temp_dict[k] = str(v) 
 
     print(f"{text} \n: , {json.dumps(temp_dict, indent=4)}")
+
+def set_seeds(seed):
+    np.random.seed(seed=seed)  # Set seed for NumPy RNG
+    random.seed(seed)  # Set seed for random RNG
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)

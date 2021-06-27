@@ -37,6 +37,7 @@ class CfgMaker():
         return cfg_logger
     
     def make_cfg_agent(self):
+
         ckp_dir = Path(self.experiment_folder) / Path("ckp")
         make_dir(ckp_dir)
 
@@ -48,13 +49,14 @@ class CfgMaker():
         replay_cfg      = self.all_configs['replay_cfg']
         exploration_cfg = self.all_configs['exploration_cfg'] 
         train_cfg       = self.all_configs['train_cfg']
-        cfg_agent  = self.all_configs['cfg_agent']
+        cfg_agent       = self.all_configs['cfg_agent']
         
         if cfg_agent['policy_type'] == "DQN":   
             dqn_cfg  = self.all_configs['dqn_net_cfg']
         
         # Update configs
         dqn_cfg['ckp_path']     = str(ckp_dir)
+        dqn_cfg['seed'] = self.all_configs['cfg_experiment']['seed']
         replay_cfg['mem_path']  = str(mem_dir)
         if "total_train_episodes" in self.all_configs['cfg_experiment']:
             exploration_cfg["total_train_episodes"] = self.all_configs['cfg_experiment']["total_train_episodes"]
@@ -73,6 +75,7 @@ class CfgMaker():
 
     def make_cfg_env(self):
         cfg_env = self.all_configs['cfg_env']
+        cfg_env['seed'] = self.all_configs['cfg_experiment']['seed']
         return cfg_env
 
 
