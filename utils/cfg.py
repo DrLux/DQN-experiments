@@ -24,66 +24,89 @@ class CfgMaker():
         self.conf_dir = self.conf_dir / 'config.json'
 
 
+    def extend_dict(self,dict):
+        all_extensions = set()
+        for ex in dict['extensions']:
+            all_extensions.add(ex)
+            if type(self.all_configs[ex]) is dict:
+                all_extensions.update(self.all_configs[ex]['extensions'])
+         
+        dict['extensions'] = list(all_extensions)
+        for ext_cfg in all_extensions:
+            dict[ext_cfg] = self.all_configs[ext_cfg]
 
     def make_cfg_logger(self):
-        log_dir = Path(self.experiment_folder) / Path("logdir")
-        make_dir(log_dir)
 
         cfg_logger = self.all_configs['cfg_logger'] 
-        cfg_logger['log_dir'] = str(log_dir)
+        
+        # Add other sub-dictionary
+        self.extend_dict(cfg_logger)
+        
+        # Update configs
         cfg_logger['dev_level'] = self.all_configs['cfg_experiment']['development']
+
+        # add experiment folder
+        if "experiment_folder" in cfg_logger:
+            cfg_logger["experiment_folder"] = self.experiment_folder
 
         return cfg_logger
     
     def make_cfg_agent(self):
 
-        ckp_dir = Path(self.experiment_folder) / Path("ckp")
-        make_dir(ckp_dir)
+        cfg_agent = self.all_configs["cfg_agent"]
 
-        mem_dir = Path(self.experiment_folder) / Path("mem")
-        make_dir(mem_dir)
+        # Add other sub-dictionary
+        self.extend_dict(cfg_agent)
 
-
-        # Get all configs
-        replay_cfg      = self.all_configs['replay_cfg']
-        exploration_cfg = self.all_configs['exploration_cfg'] 
-        train_cfg       = self.all_configs['train_cfg']
-        cfg_agent       = self.all_configs['cfg_agent']
-        
-        if cfg_agent['policy_type'] == "DQN":   
-            dqn_cfg  = self.all_configs['dqn_net_cfg']
-        
         # Update configs
-        dqn_cfg['ckp_path']     = str(ckp_dir)
-        dqn_cfg['seed'] = self.all_configs['cfg_experiment']['seed']
-        replay_cfg['mem_path']  = str(mem_dir)
-        if "total_train_episodes" in self.all_configs['cfg_experiment']:
-            exploration_cfg["total_train_episodes"] = self.all_configs['cfg_experiment']["total_train_episodes"]
-        
-        # Pack configs 
-        train_cfg['replay_cfg'] = replay_cfg
-        train_cfg['exploration_cfg'] = exploration_cfg
-        cfg_agent['train_cfg'] = train_cfg       
-        cfg_agent['dqn_cfg'] = dqn_cfg        
+        cfg_agent['seed'] = self.all_configs['cfg_experiment']['seed']
+        cfg_agent["total_train_episodes"] = self.all_configs['cfg_experiment']["total_train_episodes"]
+
+        # add experiment folder
+        if "experiment_folder" in cfg_agent:
+            cfg_agent["experiment_folder"] = self.experiment_folder
         
         return cfg_agent
 
+    
+
     def make_cfg_experiment(self):
         cfg_experiment = self.all_configs['cfg_experiment']
+
+        # Add other sub-dictionary
+        self.extend_dict(cfg_experiment)
+
+        # add experiment folder
+        if "experiment_folder" in cfg_experiment:
+            cfg_experiment["experiment_folder"] = self.experiment_folder
+        
         return cfg_experiment
 
     def make_cfg_env(self):
         cfg_env = self.all_configs['cfg_env']
+
+        # Add other sub-dictionary
+        self.extend_dict(cfg_env)
+
+        # Update configs
         cfg_env['seed'] = self.all_configs['cfg_experiment']['seed']
+
+        # add experiment folder
+        if "experiment_folder" in cfg_env:
+            cfg_env["experiment_folder"] = self.experiment_folder
+
         return cfg_env
 
 
-    def make_cfg_dumper(self):
-        dump_dir = Path(self.experiment_folder) / Path("dump")
-        make_dir(dump_dir)
-        
+    def make_cfg_dumper(self):        
         cfg_dumper = self.all_configs['cfg_dumper'] 
-        cfg_dumper['dump_dir'] = str(dump_dir)
+        
+        # Add other sub-dictionary
+        self.extend_dict(cfg_dumper)
+        
+        # add experiment folder
+        if "experiment_folder" in cfg_dumper:
+            cfg_dumper["experiment_folder"] = self.experiment_folder
 
         return cfg_dumper
 

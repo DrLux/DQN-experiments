@@ -4,7 +4,9 @@ from DQN.vect_memory import vect_ReplayBuffer
 from utils.utils import print_dict
 from DQN.exploration import Exploration_strategy
 from collections import defaultdict
+from pathlib import Path
 import torch
+from utils.utils import make_dir
 
 
 class DQN_Train_Agent(TrainAgent):
@@ -20,8 +22,9 @@ class DQN_Train_Agent(TrainAgent):
         self.step_info_dump = defaultdict(list)
         self.logger = logger
 
-        self.net_cfg = agent_cfg['dqn_cfg']
+        self.net_cfg = agent_cfg['dqn_net_cfg']
         self.dqn = Network(self.net_cfg,self.state_name,logger) 
+
 
         self.replay_cfg = self.__get_replay_cfg()
         self.memory = vect_ReplayBuffer(self.replay_cfg,self.logger)
@@ -29,9 +32,10 @@ class DQN_Train_Agent(TrainAgent):
         self.batch_size = self.train_cfg['batch_size']
         self.min_replay_dim = self.train_cfg['min_replay_dim']
 
-        exploration_cfg = self.train_cfg['exploration_cfg']
+        exploration_cfg = self.__get_exploration_cfg()
         self.exploration = Exploration_strategy(exploration_cfg,logger)
 
+        
     def get_info_dump(self):
         temp_dict = self.step_info_dump 
         self.logger.dbg_log("Agent get the temp_dict")
@@ -40,9 +44,14 @@ class DQN_Train_Agent(TrainAgent):
 
 
     def __get_replay_cfg(self):
-        for key in self.train_cfg['replay_cfg']['replay_keys']:
-            self.train_cfg['replay_cfg'].update({key : self.agent_cfg[key]})
-        return self.train_cfg['replay_cfg']
+        for key in self.agent_cfg['replay_cfg']['keys_from_agent']:
+            self.agent_cfg['replay_cfg'].update({key : self.agent_cfg[key]})
+        return self.agent_cfg['replay_cfg']
+
+    def __get_exploration_cfg(self):
+        for key in self.agent_cfg['exploration_cfg']['keys_from_agent']:
+            self.agent_cfg['exploration_cfg'].update({key : self.agent_cfg[key]})
+        return self.agent_cfg['exploration_cfg']
 
 
     def sample_random_action(self):
@@ -133,7 +142,7 @@ class DQN_Train_Agent(TrainAgent):
 class DQN_Eval_Agent(EvalAgent):
 
     def __init__(self,eval_cfg,logger):
-        self.net_cfg = eval_cfg['dqn_cfg']
+        self.net_cfg = eval_cfg['dqn_net_cfg']
         self.state_name = "evaluation"
         self.dqn = Network(self.net_cfg,self.state_name,logger)
 
@@ -162,19 +171,25 @@ class DqnAgent(Agent):
         
         self.logger = logger
         self.cfg = cfg
+
         self.__get_net_cfg()
-        
+
         ### Init Agents
         self.train_agent = DQN_Train_Agent(self.cfg,logger)
         self.eval_agent = DQN_Eval_Agent(self.cfg,logger)
         self.agent_state = self.train_agent 
         self.logger.info_log(f" Init Agent in state {self.agent_state.state_name}")
-               
+        
+
+        self.ckp_dir = Path(self.cfg['experiment_folder']) / self.cfg['ckp_dirname']
+        make_dir(self.ckp_dir)
+
+      
         
 
     def __get_net_cfg(self):        
-        self.dqn_cfg      = self.cfg['dqn_cfg']
-        for key in self.dqn_cfg['keys']:
+        self.dqn_cfg      = self.cfg['dqn_net_cfg']
+        for key in self.dqn_cfg['keys_from_agent']:
             self.dqn_cfg.update({key : self.cfg[key]})
 
     def set_agent_state(self,flag):

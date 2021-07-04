@@ -4,6 +4,8 @@ import tensorboard as tb
 from collections import defaultdict
 import numpy as np
 import matplotlib.pyplot as plt
+from utils.utils import make_dir
+from pathlib import Path
 
 
 
@@ -12,7 +14,8 @@ import matplotlib.pyplot as plt
 class Dumper():
     def __init__(self,cfg_dumper,logger):
         self.logger = logger 
-        self.dump_dir = cfg_dumper['dump_dir']
+        self.dump_dir = Path(cfg_dumper['experiment_folder']) / cfg_dumper['dump_dirname']
+        make_dir(self.dump_dir) 
         self.writer = SummaryWriter(self.dump_dir)
         self.logger.info_log(f"Started tensorboard session at: {self.writer.get_logdir()}")
         self.buffer = defaultdict(list)
@@ -65,8 +68,7 @@ class Dumper():
 
     def _make_bar_plot(self,title,list, labels):
 
-        store_path = self.dump_dir + f"/{title}.png"
-
+        store_path = self.dump_dir / (f"{title}.png")
         true_count = sum(list)
         false_count = len(list) - true_count
 

@@ -3,7 +3,7 @@ import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as F
 from pathlib import Path
-from utils.utils import set_seeds
+from utils.utils import set_seeds,make_dir
 
 
 class Network(torch.nn.Module):
@@ -20,7 +20,10 @@ class Network(torch.nn.Module):
         self.fc1Dims        = cfg['fc1Dims']
         self.fc2Dims        = cfg['fc2Dims']
         self.lr             = cfg['lr']
-        self.ckp_path       = cfg['ckp_path']
+
+        self.ckp_path = Path(cfg['experiment_folder']) / cfg['ckp_dirname']
+        make_dir(self.ckp_path) 
+       
         if cfg['device']:
             self.device = cfg['device']
         else:
@@ -74,7 +77,7 @@ class Network(torch.nn.Module):
         if episode:
             ckp['episode'] = episode
 
-        ckp_name = f"ep_{episode}.ckp"
+        ckp_name = f"dqn_ep_{episode}.ckp"
         path = Path(self.ckp_path) / (ckp_name)
         torch.save(ckp, str(path))
         self.logger.info_log(f"Storing ckp at {path}")

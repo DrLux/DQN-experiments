@@ -1,14 +1,19 @@
 import numpy as np
 from pathlib import Path
+from utils.utils import make_dir
 
 class vect_ReplayBuffer(): 
     def __init__(self, replay_cfg,logger):
+        print("replay_cfg: ", replay_cfg)
+
+        self.mem_path = Path(replay_cfg['experiment_folder']) / replay_cfg['mem_dir']
+        make_dir(self.mem_path)
+
 
         replay_dim      = replay_cfg['replay_dim']
         obs_shape       = replay_cfg['obs_shape']
         obs_dtype       = replay_cfg['obs_dtype']
         action_dtype    = replay_cfg['action_dtype']
-        self.mem_path   = replay_cfg['mem_path']
         self.logger = logger
 
 
