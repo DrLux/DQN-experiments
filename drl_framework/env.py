@@ -1,4 +1,5 @@
 import gym
+from collections import defaultdict
 
 class State():
     def __init__(self,env, logger):
@@ -107,6 +108,8 @@ class Env():
         self.render_flag = cfg_env['render']
         self.action = Action(self.env, self.logger)
         self.state = State(self.env, self.logger)
+        self.step_info_dump = defaultdict(list)
+
         self.show_info_env()
         
         
@@ -126,11 +129,20 @@ class Env():
     def sample_action(self):
         return self.action.sample_random_action()
 
+    def get_ep_info_dump(self):
+        temp_dict = self.step_info_dump 
+        self.logger.dbg_log("Env return step_info_dump and clean it's memory")
+        self.step_info_dump = defaultdict(list)
+        return temp_dict
+
     def step(self, action):
         if self.render_flag:
             self.env.render()
         new_state,rew,done,info = self.env.step(action)
         self.logger.dbg_log("Compute step in the env")
+        self.step_info_dump['reward'].append(rew)
+        self.step_info_dump['done'].append(done)
+
         return new_state,rew,done
 
     def handle_kb_int(self):

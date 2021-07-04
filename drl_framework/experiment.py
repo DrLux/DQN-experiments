@@ -59,48 +59,50 @@ class Experiment():
         episode = 0
         episode_info = dict()
         all_steps = 0
-        
+
         #tqdm
         for episode in range(self.total_train_episodes+1):
+            
             done = False
+            analize_episode = False
             state = self.env.reset()
+            ep_step = 0
 
-            cump_rew = 0
-            step_episode = 0
+            ########
+            #   INIT EPISODE
+            #######
             while not done:
                 self.logger.dbg_log(f"Experiment start train episode: {episode}")
 
-                step_agent_info = None
-                step_experiment_info = dict()
                 action = self.agent.chooseAction(state)
                 new_state, reward, done = self.env.step(action)                
                 self.agent.learn(state, action, reward, new_state, done)
                 state = new_state
-
-                cump_rew += reward
-                step_episode += 1
+                ep_step +=1
                 all_steps += 1
 
-                step_experiment_info['step'] = all_steps
-                step_experiment_info['reward'] = reward
-                step_experiment_info['done'] = done
+            #######
+            # PLOT INFORMATION
+            #######
+            agent_info_ep = self.agent.get_ep_info_dump()
+            env_info_ep = self.env.get_ep_info_dump()
 
+            if episode == self.total_train_episodes:
+                self.dumper.analyze_episode(env_info_ep,agent_info_ep,episode)
 
-                step_agent_info = self.agent.get_info_dump()
-                self.dumper.plot_step_info(step_experiment_info,step_agent_info)
+            self.dumper.dump_info(env_info_ep,agent_info_ep, episode,all_steps)
 
-            self.logger.info_log(( "ep {:4d}: score {:12.3f}, epsilon {:5.3f}").format(episode, cump_rew, self.agent.get_epsilon()))
-
-            episode_info['episode'] = episode
-            episode_info['cump_rew'] = cump_rew
-            episode_info['len'] = step_episode
-            episode_info['epsilon'] = self.agent.get_epsilon()
-
-            self.dumper.plot_episode_info(episode_info)
-            
             if episode % self.save_ckp_int == 0 and episode != 0:
                 self.last_ckp_name = self.agent.save_checkpoint(episode)
+                self.agent.dump_memory(episode)
+                self.agent.save_checkpoint(episode)
+                self.logger.info_log(f"Episode {episode}. Create ckp {self.last_ckp_name} and dumper memory!")
 
+            print(f"{episode=} {ep_step=}")
+        
+        ##############
+        # END EXPERIMENT
+        ###############à
         self.dumper.plot_experiment_info(episode)
         self.agent.dump_memory(episode)
         self.agent.save_checkpoint(episode)

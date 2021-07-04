@@ -1,4 +1,4 @@
-from drl_framework.agent import *
+from drl_framework.agent import Agent,TrainAgent,EvalAgent,registerAgent
 from DQN.network import Network
 from DQN.vect_memory import vect_ReplayBuffer
 from utils.utils import print_dict
@@ -7,6 +7,7 @@ from collections import defaultdict
 from pathlib import Path
 import torch
 from utils.utils import make_dir
+import numpy as np
 
 
 class DQN_Train_Agent(TrainAgent):
@@ -36,10 +37,10 @@ class DQN_Train_Agent(TrainAgent):
         self.exploration = Exploration_strategy(exploration_cfg,logger)
 
         
-    def get_info_dump(self):
+    def get_ep_info_dump(self):
         temp_dict = self.step_info_dump 
-        self.logger.dbg_log("Agent get the temp_dict")
-        self.step_info_dump = dict()
+        self.logger.dbg_log("Agent return step_info_dump and clean it's memory")
+        self.step_info_dump = defaultdict(list)
         return temp_dict
 
 
@@ -64,7 +65,7 @@ class DQN_Train_Agent(TrainAgent):
         exploration_step_flag = self.exploration.exploration_step_flag() 
         if exploration_step_flag:
             action = self.sample_random_action()
-            dump_qvalue = None
+            dump_qvalue = 0
         else:
             self.logger.dbg_log("Agent Calculate best action")
             obs = torch.tensor(obs).float().detach()
@@ -74,8 +75,8 @@ class DQN_Train_Agent(TrainAgent):
             action =  action.item() # return an int instead of a tensor containing the index of the best action
             dump_qvalue = torch.max(qValues).item()     
 
-        self.step_info_dump['greedy'] = not exploration_step_flag
-        self.step_info_dump['qvalue'] = dump_qvalue
+        self.step_info_dump['greedy'].append(not exploration_step_flag)
+        self.step_info_dump['qvalue'].append(dump_qvalue)
         return action  
 
     def get_epsilon(self):
@@ -87,7 +88,7 @@ class DQN_Train_Agent(TrainAgent):
         self.storeMemory(state, action, reward, next_state, done)
         if self.memory.memCount < self.min_replay_dim:
             loss = 0 
-            self.step_info_dump['epsilon'] = self.get_epsilon()
+            qupdate = 0
             self.logger.dbg_log("Agent doesn't learn nothing in this step")
         else:
         
@@ -107,20 +108,24 @@ class DQN_Train_Agent(TrainAgent):
             next_qValue[done] = 0.0                    #   filter out post-terminal states
 
             qTarget = reward + self.gamma * next_qValue
+
             loss = self.dqn.loss(qTarget, qValue)
 
             self.dqn.optimizer.zero_grad()
             loss.backward()
             self.dqn.optimizer.step()
             self.logger.dbg_log("Agent compute backpropagation")
-
-
+            
+            
+            loss = loss.cpu().item() #extract from torch tensor
             self.exploration.decay_exp()
             self.logger.dbg_log("Agent decay esploration.")
+            qupdate = np.mean(np.array(((qTarget - qValue).detach().abs().cpu())))
 
 
-        self.step_info_dump['loss'] = loss
-        self.step_info_dump['epsilon'] = self.get_epsilon()
+        self.step_info_dump['qupdate'].append(qupdate)
+        self.step_info_dump['loss'].append(loss)
+        self.step_info_dump['epsilon'].append(self.get_epsilon())
 
     def storeMemory(self, state, action, reward, nextState, done):
         self.memory.storeMemory(state, action, reward, nextState, done)
@@ -163,7 +168,7 @@ class DQN_Eval_Agent(EvalAgent):
     def handle_kb_int(self):
         self.logger.info_log("Received keyboard interrupt. Closing Eval Agent")
 
-
+@registerAgent
 class DqnAgent(Agent):
     
     def __init__(self,cfg,info_env,logger):
@@ -187,7 +192,7 @@ class DqnAgent(Agent):
       
         
 
-    def __get_net_cfg(self):        
+    def __get_net_cfg(self):  
         self.dqn_cfg      = self.cfg['dqn_net_cfg']
         for key in self.dqn_cfg['keys_from_agent']:
             self.dqn_cfg.update({key : self.cfg[key]})
@@ -224,8 +229,8 @@ class DqnAgent(Agent):
         else:
             pass
 
-    def get_info_dump(self):
-        return self.agent_state.get_info_dump()
+    def get_ep_info_dump(self):
+        return self.agent_state.get_ep_info_dump()
 
     def load_checkpoint(self,ckp_name):
         self.agent_state.load_checkpoint(ckp_name)

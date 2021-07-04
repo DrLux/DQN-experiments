@@ -24,16 +24,15 @@ class CfgMaker():
         self.conf_dir = self.conf_dir / 'config.json'
 
 
-    def extend_dict(self,dict):
+    def extend_dict(self,dict_to_ext):
         all_extensions = set()
-        for ex in dict['extensions']:
+        for ex in dict_to_ext['extensions']:
             all_extensions.add(ex)
             if type(self.all_configs[ex]) is dict:
                 all_extensions.update(self.all_configs[ex]['extensions'])
-         
-        dict['extensions'] = list(all_extensions)
+        dict_to_ext['extensions'] = list(all_extensions)
         for ext_cfg in all_extensions:
-            dict[ext_cfg] = self.all_configs[ext_cfg]
+            dict_to_ext[ext_cfg] = self.all_configs[ext_cfg]
 
     def make_cfg_logger(self):
 
@@ -54,6 +53,7 @@ class CfgMaker():
     def make_cfg_agent(self):
 
         cfg_agent = self.all_configs["cfg_agent"]
+        cfg_agent['extensions'].append(cfg_agent['agent_class'])
 
         # Add other sub-dictionary
         self.extend_dict(cfg_agent)
@@ -103,6 +103,9 @@ class CfgMaker():
         
         # Add other sub-dictionary
         self.extend_dict(cfg_dumper)
+
+        cfg_dumper["env_names"] = self.all_configs['cfg_env']['dump_names']
+        cfg_dumper["agent_names"] = self.all_configs[(self.all_configs['cfg_agent']['agent_class'])]['dump_names']
         
         # add experiment folder
         if "experiment_folder" in cfg_dumper:

@@ -8,6 +8,13 @@ import json
 def make_dir(dirpath):
   Path(dirpath).mkdir(parents=True,exist_ok=True)
 
+def delete_folder(pth) :
+    for sub in pth.iterdir() :
+        if sub.is_dir() :
+            delete_folder(sub)
+        else :
+            sub.unlink()
+    pth.rmdir() # if you just want to delete the dir content but not the dir itself, remove this line
   
 class Chronometer():
   def __init__(self):
