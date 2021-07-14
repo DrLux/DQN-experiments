@@ -1,0 +1,7 @@
+development: DEVELOPMENT
+extensions: []
+max_allowed_steps: 100000
+save_ckp_int: 50
+seed: 1
+total_test_episodes: 2
+total_train_episodes: 100

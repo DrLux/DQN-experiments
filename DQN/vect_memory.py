@@ -1,11 +1,10 @@
 import numpy as np
 from pathlib import Path
-from utils.utils import make_dir
 
 class vect_ReplayBuffer(): 
     def __init__(self, replay_cfg,logger):
         self.mem_path = Path(replay_cfg['experiment_folder']) / replay_cfg['mem_dir']
-        make_dir(self.mem_path)
+        self.mem_path.mkdir(parents=True,exist_ok=True)
 
 
         replay_dim      = replay_cfg['replay_dim']

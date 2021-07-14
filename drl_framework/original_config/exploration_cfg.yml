@@ -1,0 +1,7 @@
+epsilon: 0.1
+epsilon_decay: 5.0e-05
+epsilon_min: 0.001
+extensions: []
+keys_from_agent:
+- total_train_episodes
+strategy: linear

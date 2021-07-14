@@ -1,0 +1,17 @@
+data_to_dump:
+- reward
+- epsilon
+- loss
+- qupdate
+- qvalue
+dump_dirname: dump
+dump_to_file: false
+episode_grain_dump: true
+experiment_folder: ''
+experiment_grain_dump: true
+extensions: []
+labels_barplot:
+  greedy:
+  - greedy
+  - random
+step_grain_dump: true

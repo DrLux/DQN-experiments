@@ -4,19 +4,13 @@ import tensorboard as tb
 from collections import defaultdict
 import numpy as np
 import matplotlib.pyplot as plt
-from utils.utils import make_dir,delete_folder
 from pathlib import Path
-
-
-
-
 
 class Dumper():
     def __init__(self,cfg_dumper,logger):
         self.logger = logger 
         self.dump_dir = Path(cfg_dumper['experiment_folder']) / cfg_dumper['dump_dirname']
-        delete_folder(self.dump_dir) 
-        make_dir(self.dump_dir) 
+        self.dump_dir.mkdir(parents=True,exist_ok=True) 
         self.writer = SummaryWriter(self.dump_dir)
         self.logger.info_log(f"Started tensorboard session at: {self.writer.get_logdir()}")
         self.labels_barplot = cfg_dumper['labels_barplot']

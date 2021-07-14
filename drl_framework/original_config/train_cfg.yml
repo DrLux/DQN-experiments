@@ -1,0 +1,3 @@
+batch_size: 64
+extensions: []
+min_replay_dim: 1024

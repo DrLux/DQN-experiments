@@ -6,7 +6,6 @@ from DQN.exploration import Exploration_strategy
 from collections import defaultdict
 from pathlib import Path
 import torch
-from utils.utils import make_dir
 import numpy as np
 
 
@@ -187,7 +186,7 @@ class DqnAgent(Agent):
         
 
         self.ckp_dir = Path(self.cfg['experiment_folder']) / self.cfg['ckp_dirname']
-        make_dir(self.ckp_dir)
+        self.ckp_dir.mkdir(parents=True,exist_ok=True)
 
       
         

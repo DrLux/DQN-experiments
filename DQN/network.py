@@ -3,7 +3,7 @@ import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as F
 from pathlib import Path
-from utils.utils import set_seeds,make_dir
+from utils.utils import set_seeds
 
 
 class Network(torch.nn.Module):
@@ -22,7 +22,7 @@ class Network(torch.nn.Module):
         self.lr             = cfg['lr']
 
         self.ckp_path = Path(cfg['experiment_folder']) / cfg['ckp_dirname']
-        make_dir(self.ckp_path) 
+        self.ckp_path.mkdir(parents=True,exist_ok=True)
        
         if cfg['device']:
             self.device = cfg['device']

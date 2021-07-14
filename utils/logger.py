@@ -3,7 +3,6 @@ import time
 import tracemalloc
 from pathlib import Path
 from inspect import getframeinfo, stack
-from utils.utils import make_dir
 
 
 class Logger():
@@ -13,7 +12,7 @@ class Logger():
         self.dev_level = cfg['dev_level']
        
         base_path = Path(cfg['experiment_folder']) / cfg['log_dirname']
-        make_dir(base_path) 
+        base_path.mkdir(parents=True,exist_ok=True) 
 
 
         if self.dev_level == "DEVELOPMENT":        

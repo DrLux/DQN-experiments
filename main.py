@@ -10,6 +10,7 @@ from utils.utils import *
 
 if __name__ == "__main__":
     cfg = CfgMaker()
+    
     # Get all config
     cfg_logger = cfg.make_cfg_logger()
     cfg_dumper = cfg.make_cfg_dumper()
@@ -30,6 +31,7 @@ if __name__ == "__main__":
 
         
     try:
+
         experiment.train()
         experiment.test()
 

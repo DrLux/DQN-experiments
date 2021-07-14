@@ -5,8 +5,7 @@ from pathlib import Path
 import tracemalloc
 import json
 
-def make_dir(dirpath):
-  Path(dirpath).mkdir(parents=True,exist_ok=True)
+
 
 def delete_folder(pth) :
     for sub in pth.iterdir() :

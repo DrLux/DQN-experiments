@@ -1,0 +1,6 @@
+dump_names:
+- reward
+- done
+env_name: CartPole-v1
+extensions: []
+render: false

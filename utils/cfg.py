@@ -1,27 +1,31 @@
-from utils.utils import make_dir
 import datetime
 import logging
 import pickle
 from pathlib import Path
-import json
+import yaml
+from utils.utils import delete_folder
+
+
 
 class CfgMaker():
 
     def __init__(self,load=False):
         self.all_configs = dict()
+        self.load_cfg_path = Path("drl_framework/original_config/")
         self.load_cfg()
-        
+
         if self.all_configs['cfg_experiment']['development'] == "DEVELOPMENT":
-            self.experiment_folder = 'experiments/results/dev'
+            self.experiment_folder = Path('experiments/results/dev')
+            delete_folder(self.experiment_folder) 
         else: 
-            self.experiment_folder = 'experiments/results/'+str(datetime.datetime.now().strftime('%d-%b-%y_%H:%M:%S'))
+            self.experiment_folder = Path('experiments/results/'+str(datetime.datetime.now().strftime('%d-%b-%y_%H:%M:%S')))
 
         #  create folders
-        make_dir(self.experiment_folder)
+        self.experiment_folder.mkdir(parents=True,exist_ok=True)
         
         self.conf_dir = Path(self.experiment_folder) / Path("config") 
-        make_dir(self.conf_dir)
-        self.conf_dir = self.conf_dir / 'config.json'
+        self.conf_dir.mkdir(parents=True,exist_ok=True)
+         
 
 
     def extend_dict(self,dict_to_ext):
@@ -114,15 +118,23 @@ class CfgMaker():
         return cfg_dumper
 
     def dump_cfg(self):
-        with open(str(self.conf_dir), 'w') as outfile:
-            json.dump(self.all_configs, outfile, indent=4)
+        #with open(str(self.conf_dir), 'w') as outfile:
+        #    json.dump(self.all_configs, outfile, indent=4)
+        if self.all_configs:
+            for k,v in self.all_configs.items():
+                conf_path = self.conf_dir / (k + ".yml")
+
+                with conf_path.open('a') as fp:
+                    yaml.dump(v, fp)
     
     def load_cfg(self):
-        path = "experiments/original_config/original_config.json"
-        print(f"Loading configs from: {path}")
-        with open(str(path), 'rb') as handle:
-            self.all_configs = json.load(handle)
-        self.show_configs()
+        print(f"Loading configs from: {self.load_cfg_path}")
+        for conf_path in self.load_cfg_path.glob(r"*.yml"):
+            with conf_path.open('r') as handle:
+                self.all_configs[conf_path.stem] = yaml.load(handle, Loader=yaml.Loader)
+        #with open(str(self.load_cfg_path), 'rb') as handle:
+        #    self.all_configs = json.load(handle)
+        #self.show_configs()
 
     def show_configs(self):        
         for conf_name, configs in self.all_configs.items():
