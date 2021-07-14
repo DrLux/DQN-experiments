@@ -5,6 +5,7 @@ from collections import defaultdict
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
+import wandb
 
 class Dumper():
     def __init__(self,cfg_dumper,logger):
@@ -22,6 +23,10 @@ class Dumper():
         self.dump_to_file = cfg_dumper['dump_to_file']
 
         self.data_to_dump = cfg_dumper['data_to_dump']
+
+        wandb.login()
+        
+        wandb.init(name='test_run', project='test_project', notes='This is a test run', tags=['Fashion MNIST', 'Test Run'],entity='drlux', config=cfg_dumper)
 
 
         if self.experiment_grain_dump:
@@ -81,6 +86,7 @@ class Dumper():
         qupdates    = np.array(step_agent_info['qupdate'])
         epsilons    = np.array(step_agent_info['epsilon'])
         qvalues     = np.array(step_agent_info['qvalue'])
+        #network     = step_agent_info['network']
 
 
         # Env statistics
@@ -95,6 +101,19 @@ class Dumper():
         self.plot_scalar(f"episode/mean_qvalues",np.mean(qvalues),  episode)
         self.plot_scalar(f"episode/mean_qupdates",np.mean(qupdates),episode)
         self.plot_scalar(f"episode/mean_losses",np.mean(losses),    episode)
+
+        wandb.log({
+                    "episode": episode,
+                    "Mean Rewards": np.mean(rewards),
+                    "Max Rewards": np.amax(rewards),
+                    "Min Rewards": np.amin(rewards),
+                    "Std Rewards": np.std(rewards),
+                    "Epsilon": np.mean(epsilons),
+                    "Losses" : np.mean(losses)
+                })
+
+        #wandb.watch(network)
+
         
 
     

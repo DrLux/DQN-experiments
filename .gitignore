@@ -18,6 +18,7 @@ experiments/
 homework_fall2020-master/
 .Python
 build/
+wandb/
 develop-eggs/
 dist/
 downloads/
