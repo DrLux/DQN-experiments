@@ -60,8 +60,7 @@ class Experiment():
         episode_info = dict()
         all_steps = 0
 
-        #tqdm
-        for episode in range(self.total_train_episodes+1):
+        for episode in tqdm(range(self.total_train_episodes+1)):
             
             done = False
             analize_episode = False
@@ -98,7 +97,7 @@ class Experiment():
                 self.agent.save_checkpoint(episode)
                 self.logger.info_log(f"Episode {episode}. Create ckp {self.last_ckp_name} and dumper memory!")
 
-            print(f"{episode=} {ep_step=}")
+            #print(f"{episode=} {ep_step=}")
         
         ##############
         # END EXPERIMENT

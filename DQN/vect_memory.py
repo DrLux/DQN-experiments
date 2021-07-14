@@ -4,8 +4,6 @@ from utils.utils import make_dir
 
 class vect_ReplayBuffer(): 
     def __init__(self, replay_cfg,logger):
-        print("replay_cfg: ", replay_cfg)
-
         self.mem_path = Path(replay_cfg['experiment_folder']) / replay_cfg['mem_dir']
         make_dir(self.mem_path)
 

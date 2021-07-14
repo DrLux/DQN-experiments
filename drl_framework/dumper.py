@@ -49,7 +49,6 @@ class Dumper():
         self.writer.add_text(cell_title,text,step)
 
     def dump_info(self,env_info_ep,step_agent_info,episode,total_steps):
-
         if self.step_grain_dump:
             self.dump_steps(env_info_ep,step_agent_info,total_steps)
             self.logger.dbg_log(f"Dumped step_grain_dump")
