@@ -1,6 +1,7 @@
 from pathlib import Path
 import datetime
 import yaml
+from pprint import pprint
 
 
 class Config:
@@ -15,6 +16,18 @@ class Config:
         self.experiment_folder = Path('./output/data/results/' + experiment_name)
         self.experiment_folder.mkdir(parents=True, exist_ok=True)
 
+        self.experiment_folder = Path('./output/data/results/' + experiment_name)
+        self.experiment_folder.mkdir(parents=True, exist_ok=True)
+
+        self.ckp_dirpath = self.experiment_folder / 'ckp_dir'
+        self.ckp_dirpath.mkdir(parents=True, exist_ok=True)
+
+        self.log_dirpath = self.experiment_folder / 'log_dir'
+        self.log_dirpath.mkdir(parents=True, exist_ok=True)
+
+        self.dashboard_dirpath = self.experiment_folder / 'dashboard'
+        self.dashboard_dirpath.mkdir(parents=True, exist_ok=True)
+
         self.load_cfg(cfg2load)        
                 
 
@@ -23,7 +36,7 @@ class Config:
         self.allConfigs = dict()
         for conf_path in cfg2load.glob(r"*.yml"):
             with conf_path.open('r') as handle:
-                self.allConfigs[conf_path.stem] = yaml.load(handle, Loader=yaml.Loader)
+                self.allConfigs[conf_path.stem] = yaml.load(handle, Loader=yaml.Loader) or {}
         
 
     def dump_cfg(self):
@@ -39,7 +52,7 @@ class Config:
 
 
     def __str__(self):
-        return str(self.model_params)
+        return str(self.allConfigs)
 
     def __reprs__(self):
         self.__str__()
@@ -49,7 +62,16 @@ class Config:
         self.dump_cfg()
 
     @property
-    def classConfig(self):
+    def envConfig(self):
+        self.allConfigs["envConfig"]["seed"] = self.seed
         self.dump_cfg()
-        return self.allConfigs["classConfig"]
+        return self.allConfigs["envConfig"]
+
+    def print(self):
+        pprint(vars(self))
+
+    #@property
+    #def classConfig(self):
+    #    self.dump_cfg()
+    #    return self.allConfigs["classConfig"]
     
