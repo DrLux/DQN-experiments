@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "DRLux_Toolbox"
+version = "0.1.0"
+description = "A set of tools for Reinforcement Learning experiments"
+authors = ["drlux <drlux.dev@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+autopep8 = "^1.6.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

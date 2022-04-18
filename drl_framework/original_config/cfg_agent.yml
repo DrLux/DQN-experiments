@@ -1,5 +1,0 @@
-agent_class: DqnAgent
-ckp_dirname: ckp
-experiment_folder: ''
-extensions: []
-gamma: 0.99

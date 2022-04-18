@@ -1,8 +1,0 @@
-extensions: []
-keys_from_agent:
-- obs_shape
-- obs_dtype
-- action_dtype
-- experiment_folder
-mem_dir: mem
-replay_dim: 10000

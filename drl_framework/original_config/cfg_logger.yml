@@ -1,5 +1,0 @@
-dbg_log_file: dbglog.txt
-experiment_folder: ''
-extensions: []
-info_log_file: infolog.txt
-log_dirname: log
